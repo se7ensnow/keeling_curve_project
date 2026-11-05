@@ -1,0 +1,7 @@
+Model,Maunakea,Months,RMSE (ppm)
+Linear,False,121,13.6023
+Linear,True,8,15.6626
+Polynomial + seasonal,False,121,2.2250
+Polynomial + seasonal,True,8,1.8239
+Exponential + seasonal,False,121,0.7798
+Exponential + seasonal,True,8,0.4185

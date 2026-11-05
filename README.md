@@ -13,12 +13,13 @@ src/keeling/         Python package
   data.py            loader / cleaning
   split.py           fixed held-out split (train <= 2015-12)
   models/            one fit/predict class per rung (1-4)
-  evaluate.py        held-out errors, comparison table, rung 5 limits
+  evaluate.py        rung 3 selection, held-out errors, comparison table, rung 5 limits, backtests
   plots.py           figures
 scripts/             one script per result
 tests/               pytest tests (incl. synthetic data)
 results/figures/     plots
 results/params/      fitted parameters as JSON
+frontend/            interactive explorer (index.html + generated data.js)
 notebooks/           exploration only
 report/              4-5 page report (PDF)
 decisions.md         decision log
@@ -33,4 +34,19 @@ pytest
 
 ## Results: one command each
 
-_TODO_
+All commands run from the repo root. Figures go to `results/figures/`, tables to `results/tables/`, parameters (JSON) to `results/params/`.
+
+| Result | Command |
+|---|---|
+| Rung 1: one straight line, residual plot | `python scripts/run_results.py rung1` |
+| Rung 2: a line per decade, growth rate in ppm/yr | `python scripts/run_results.py rung2` |
+| Rung 3: polynomial + seasonal, degree and harmonics chosen on 2011-2015 | `python scripts/run_results.py rung3` |
+| Rung 4: exponential trend, rate r searched non-linearly | `python scripts/run_results.py rung4` |
+| Rung 5: held-out table, errors by year, Maunakea months, 1 ppm horizon | `python scripts/run_results.py compare` |
+| Rung 5: 20-year backtests and the 2035 forecast with an error bar | `python scripts/run_results.py forecast` |
+| All of the above | `python scripts/run_results.py all` |
+| Tests | `pytest` |
+| Fit linear, polynomial + seasonal and exponential + seasonal on 1958-2015; write `results/params/*.json` and `frontend/data.js` | `python scripts/export_frontend.py` |
+| Interactive explorer: pick a month and a model, see measured vs predicted CO2 and forecasts up to 50 years ahead | `python -m http.server 8000 --directory frontend`, then open http://localhost:8000 |
+
+`frontend/index.html` also opens directly from disk (double-click), because the data is loaded as a script rather than fetched.

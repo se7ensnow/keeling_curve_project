@@ -23,6 +23,7 @@ NOAA Global Monitoring Laboratory, *Trends in Atmospheric Carbon Dioxide*, month
 - Format: whitespace-separated, lines starting with `#` are comments. Columns: year, month, decimal date, monthly average, deseasonalised, #days, st.dev of days, unc. of monthly mean.
 - Missing months: there are no missing values; missing months were already interpolated by NOAA and are marked by a negative st.dev / uncertainty (`-9.99` / `-0.99`).
   - Mar 1958 - Apr 1974 (Scripps data): no #days / st.dev / unc. available, so all are negative. These are not necessarily interpolated.
-  - NOAA era (May 1974 on): only Dec 1975 is marked interpolated.
+  - NOAA era (May 1974 on): only Dec 1975 is interpolated (`ndays = -1`, no measured days).
+  - Apr 1984 also has st.dev `-9.99`, but it has 2 measured days, so it is a measured month with too few days for a st.dev. It is kept as measured.
 - Values are corrected to the centre of the month using the average seasonal cycle.
 - Mauna Loa eruption gap: Dec 2022 - Jul 2023 values come from Maunakea. Treatment: see `decisions.md`.

@@ -1,0 +1,4 @@
+Model,first_month_over,months_single,first_rolling_over,months_rolling
+Linear,2016-01-01,0,2016-12-01,11
+Polynomial + seasonal,2016-02-01,1,2016-12-01,11
+Exponential + seasonal,2016-04-01,3,2016-12-01,11

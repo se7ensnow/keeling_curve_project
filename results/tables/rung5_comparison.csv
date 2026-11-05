@@ -1,0 +1,4 @@
+Model,Parameters,Train RMSE (ppm),Test MAE (ppm),Test RMSE (ppm),Residual SD (ppm)
+Exponential + seasonal,11,0.7960,0.6450,0.7624,0.5502
+Polynomial + seasonal,11,0.7346,2.0728,2.2023,0.7470
+Linear,2,3.7416,13.2018,13.7391,3.8193

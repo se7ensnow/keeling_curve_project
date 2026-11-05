@@ -1,0 +1,4 @@
+Model,First year over,Max abs annual error (ppm)
+Linear,2016,18.7991
+Polynomial + seasonal,2016,3.3237
+Exponential + seasonal,,0.8504

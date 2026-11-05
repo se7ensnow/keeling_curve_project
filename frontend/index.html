@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Keeling Curve Explorer</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-0: #f4f3f0;
+    --surface-1: #fcfcfb;
+    --border: #e2e0da;
+    --grid: #ebe9e4;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted: #7a7974;
+    --observed: #0b0b0b;
+    --band-heldout: rgba(42, 120, 214, 0.07);
+    --band-forecast: rgba(122, 121, 116, 0.10);
+    --m-linear: #2a78d6;
+    --m-polynomial_seasonal: #eb6834;
+    --m-exponential_seasonal: #1baf7a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --surface-0: #111110;
+      --surface-1: #1a1a19;
+      --border: #2e2d2b;
+      --grid: #262624;
+      --text-primary: #f0efec;
+      --text-secondary: #c3c2b7;
+      --text-muted: #8f8e88;
+      --observed: #f0efec;
+      --band-heldout: rgba(57, 135, 229, 0.10);
+      --band-forecast: rgba(195, 194, 183, 0.08);
+      --m-linear: #3987e5;
+      --m-polynomial_seasonal: #d95926;
+      --m-exponential_seasonal: #199e70;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-0: #111110;
+    --surface-1: #1a1a19;
+    --border: #2e2d2b;
+    --grid: #262624;
+    --text-primary: #f0efec;
+    --text-secondary: #c3c2b7;
+    --text-muted: #8f8e88;
+    --observed: #f0efec;
+    --band-heldout: rgba(57, 135, 229, 0.10);
+    --band-forecast: rgba(195, 194, 183, 0.08);
+    --m-linear: #3987e5;
+    --m-polynomial_seasonal: #d95926;
+    --m-exponential_seasonal: #199e70;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--surface-0);
+    color: var(--text-primary);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 1120px; margin: 0 auto; padding: 28px 16px 48px; }
+  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .sub { color: var(--text-secondary); margin: 0 0 22px; }
+
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: end; margin-bottom: 16px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field > span { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; flex-wrap: wrap; }
+  .seg button {
+    font: inherit; font-size: 14px; border: 0; background: transparent; color: var(--text-secondary);
+    padding: 7px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+  }
+  .seg button + button { border-left: 1px solid var(--border); }
+  .seg button[aria-pressed="true"] { background: var(--surface-0); color: var(--text-primary); font-weight: 600; }
+  .swatch { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+
+  .month-row { display: flex; gap: 6px; align-items: center; }
+  .month-row input {
+    font: inherit; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface-1); color: var(--text-primary);
+  }
+  .btn {
+    font: inherit; font-size: 14px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface-1); color: var(--text-secondary); padding: 6px 10px; cursor: pointer;
+  }
+  .btn:hover, .seg button:hover { color: var(--text-primary); }
+  .check { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-secondary); cursor: pointer; }
+
+  .grid { display: grid; grid-template-columns: 320px 1fr; gap: 16px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+  .result .label { color: var(--text-secondary); font-size: 14px; }
+  .result .hero { font-size: 44px; font-weight: 700; line-height: 1.1; margin: 6px 0 2px; font-variant-numeric: tabular-nums; }
+  .result .hero small { font-size: 18px; font-weight: 500; color: var(--text-secondary); }
+  .tag {
+    display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+    border: 1px solid var(--border); color: var(--text-secondary); margin-top: 6px;
+  }
+  dl { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; margin: 16px 0 0; font-size: 14px; }
+  dt { color: var(--text-secondary); }
+  dt { white-space: nowrap; }
+  dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+  dd.region { grid-column: 1 / -1; text-align: left; font-weight: 400; color: var(--text-secondary); white-space: normal; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 16px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 6px 4px; border-top: 1px solid var(--border); }
+  th { color: var(--text-muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; border-top: 0; }
+  td.num, th.num { text-align: right; }
+  tr.active td { font-weight: 700; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin: 20px 0 0; }
+
+  .chart-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 8px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--text-secondary); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  #chart { position: relative; width: 100%; }
+  #chart svg { display: block; width: 100%; height: auto; outline: none; }
+  #chart svg:focus-visible { box-shadow: 0 0 0 2px var(--m-linear); border-radius: 6px; }
+  .axis text { fill: var(--text-muted); font-size: 12px; }
+  .axis line, .axis path { stroke: var(--grid); }
+  .band-label { fill: var(--text-muted); font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+  .tooltip {
+    position: absolute; pointer-events: none; background: var(--surface-1); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 10px; font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    white-space: nowrap; display: none; font-variant-numeric: tabular-nums;
+  }
+  .tooltip .tt-row { display: flex; align-items: center; gap: 6px; }
+  .tooltip .tt-row b { margin-left: auto; padding-left: 12px; }
+  .hint { font-size: 12px; color: var(--text-muted); margin: 8px 0 0; }
+  .note { color: var(--text-secondary); font-size: 13px; margin-top: 16px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Keeling Curve Explorer</h1>
+  <p class="sub" id="subtitle">Monthly mean CO₂ at Mauna Loa, with three models fitted on March 1958 – December 2015.</p>
+
+  <div class="controls card">
+    <div class="field">
+      <span>Model</span>
+      <div class="seg" id="model-seg" role="group" aria-label="Model"></div>
+    </div>
+    <div class="field">
+      <span>Month</span>
+      <div class="month-row">
+        <button class="btn" id="prev" aria-label="Previous month">‹</button>
+        <input type="month" id="month" aria-label="Select month">
+        <button class="btn" id="next" aria-label="Next month">›</button>
+      </div>
+    </div>
+    <div class="field">
+      <span>Jump to</span>
+      <div class="seg" id="jump-seg" role="group" aria-label="Jump to"></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <section class="card result" aria-live="polite">
+      <div class="label" id="r-label"></div>
+      <div class="hero" id="r-hero"></div>
+      <div id="r-tag"></div>
+      <dl id="r-details"></dl>
+      <h2>All models, this month</h2>
+      <table>
+        <thead><tr><th>Model</th><th class="num">ppm</th><th class="num" id="th-diff">vs measured</th></tr></thead>
+        <tbody id="r-table"></tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <div class="chart-head">
+        <div class="legend" id="legend"></div>
+        <div style="display:flex; gap:14px; align-items:center; flex-wrap:wrap;">
+          <label class="check"><input type="checkbox" id="show-all"> Compare all models</label>
+          <div class="seg" id="range-seg" role="group" aria-label="Chart range">
+            <button data-range="all" aria-pressed="true">Full range</button>
+            <button data-range="zoom" aria-pressed="false">±5 years</button>
+          </div>
+        </div>
+      </div>
+      <div id="chart"></div>
+      <p class="hint">Click the chart to pick a month. With the chart focused, the arrow keys move by a month (hold Shift for a year).</p>
+    </section>
+  </div>
+
+  <p class="note" id="note"></p>
+</main>
+
+<script src="data.js"></script>
+<script>
+(() => {
+  const D = window.CO2_DATA;
+  const months = D.months;
+  const n = months.length;
+  const index = Object.fromEntries(months.map((m, i) => [m, i]));
+  const lastObs = index[D.meta.last_observed];
+  const heldOut = index[D.meta.held_out_start];
+  const modelKeys = Object.keys(D.models);
+  const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+  const state = { model: "exponential_seasonal", sel: lastObs, range: "all", showAll: false };
+
+  const $ = (id) => document.getElementById(id);
+  const color = (key) => `var(--m-${key})`;
+  const fmt = (v, d = 2) => v == null ? "–" : v.toFixed(d);
+  const signed = (v, d = 2) => v == null ? "–" : (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(d);
+  const label = (i) => { const [y, m] = months[i].split("-"); return `${MONTH_NAMES[+m - 1]} ${y}`; };
+  const yearOf = (i) => +months[i].slice(0, 4) + (+months[i].slice(5) - 1) / 12;
+  const clamp = (i) => Math.max(0, Math.min(n - 1, i));
+
+  function region(i) {
+    if (i > lastObs) return { name: "Forecast", text: `${((i - lastObs) / 12).toFixed(1)} years after the latest measurement` };
+    if (i >= heldOut) return { name: "Held out", text: "Not used to fit the models" };
+    return { name: "Training", text: "Used to fit the models" };
+  }
+
+  // ---------- controls ----------
+  $("model-seg").innerHTML = modelKeys.map((k) =>
+    `<button data-model="${k}"><span class="swatch" style="background:${color(k)}"></span>${D.models[k].label}</button>`
+  ).join("");
+  $("model-seg").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    state.model = b.dataset.model; render();
+  });
+
+  const jumps = [
+    ["Latest", () => lastObs],
+    ["2035", () => index["2035-01"]],
+    ["+10 yrs", () => lastObs + 120],
+    ["+25 yrs", () => lastObs + 300],
+    ["+50 yrs", () => n - 1],
+  ];
+  $("jump-seg").innerHTML = jumps.map(([t], i) => `<button data-j="${i}">${t}</button>`).join("");
+  $("jump-seg").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    select(jumps[+b.dataset.j][1]());
+  });
+
+  const input = $("month");
+  input.min = months[0];
+  input.max = months[n - 1];
+  input.addEventListener("change", () => { if (input.value in index) select(index[input.value]); });
+  $("prev").addEventListener("click", () => select(state.sel - 1));
+  $("next").addEventListener("click", () => select(state.sel + 1));
+
+  $("show-all").addEventListener("change", (e) => { state.showAll = e.target.checked; render(); });
+  $("range-seg").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    state.range = b.dataset.range; render();
+  });
+
+  function select(i) { state.sel = clamp(i); render(); }
+
+  // ---------- result panel ----------
+  function renderPanel() {
+    const i = state.sel, m = D.models[state.model];
+    const obs = D.observed[i], pred = m.pred[i], r = region(i);
+    const maunakea = D.maunakea.includes(months[i]);
+
+    $("r-label").textContent = `${m.label} · ${label(i)}`;
+    $("r-hero").innerHTML = `${fmt(pred)} <small>ppm</small>`;
+    $("r-tag").innerHTML = `<span class="tag">${r.name}</span>` +
+      (obs == null ? ` <span class="tag">No measurement</span>` : "") +
+      (maunakea ? ` <span class="tag">Measured at Maunakea</span>` : "");
+
+    const rows = [
+      ["Measured", obs == null ? "–" : `${fmt(obs)} ppm`],
+      ["Model error", obs == null ? "–" : `${signed(pred - obs)} ppm`],
+      ["Trend", `${fmt(m.trend[i])} ppm`],
+      ["Trend growth", `${fmt(m.growth[i])} ppm/yr`],
+      ["Held-out RMSE", `${fmt(m.test_rmse)} ppm`],
+    ];
+    $("r-details").innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("") +
+      `<dd class="region">${r.text}</dd>`;
+
+    $("th-diff").textContent = obs == null ? "vs selected" : "vs measured";
+    $("r-table").innerHTML = modelKeys.map((k) => {
+      const p = D.models[k].pred[i];
+      const ref = obs == null ? pred : obs;
+      return `<tr class="${k === state.model ? "active" : ""}">
+        <td><span class="swatch" style="background:${color(k)}"></span> ${D.models[k].label}</td>
+        <td class="num">${fmt(p)}</td>
+        <td class="num">${k === state.model && obs == null ? "–" : signed(p - ref)}</td></tr>`;
+    }).join("");
+
+    document.querySelectorAll("#model-seg button").forEach((b) =>
+      b.setAttribute("aria-pressed", b.dataset.model === state.model));
+    document.querySelectorAll("#range-seg button").forEach((b) =>
+      b.setAttribute("aria-pressed", b.dataset.range === state.range));
+    input.value = months[i];
+  }
+
+  // ---------- chart ----------
+  const NS = "http://www.w3.org/2000/svg";
+  const chartEl = $("chart");
+  const tooltip = document.createElement("div");
+  tooltip.className = "tooltip";
+  let svg, geom;
+
+  function visibleModels() { return state.showAll ? modelKeys : [state.model]; }
+
+  function niceStep(span, target) {
+    const raw = span / target, p = Math.pow(10, Math.floor(Math.log10(raw)));
+    return [1, 2, 5, 10].map((s) => s * p).find((s) => s >= raw);
+  }
+
+  function renderChart() {
+    const W = Math.max(320, chartEl.clientWidth), H = W < 560 ? 300 : 400;
+    const pad = { l: 44, r: 12, t: 22, b: 28 };
+
+    let i0 = 0, i1 = n - 1;
+    if (state.range === "zoom") { i0 = clamp(state.sel - 60); i1 = clamp(state.sel + 60); }
+
+    const series = visibleModels();
+    let lo = Infinity, hi = -Infinity;
+    for (let i = i0; i <= i1; i++) {
+      const vals = series.map((k) => D.models[k].pred[i]).concat(D.observed[i] ?? []);
+      for (const v of vals) { if (v < lo) lo = v; if (v > hi) hi = v; }
+    }
+    const span = hi - lo || 1; lo -= span * 0.05; hi += span * 0.05;
+
+    const x = (i) => pad.l + ((i - i0) / (i1 - i0)) * (W - pad.l - pad.r);
+    const y = (v) => pad.t + (1 - (v - lo) / (hi - lo)) * (H - pad.t - pad.b);
+    geom = { i0, i1, x, pad, W, H };
+
+    const parts = [];
+    // bands
+    const band = (a, b, fill, text) => {
+      const s = Math.max(a, i0), e = Math.min(b, i1);
+      if (e <= s) return;
+      parts.push(`<rect x="${x(s)}" y="${pad.t}" width="${x(e) - x(s)}" height="${H - pad.t - pad.b}" fill="${fill}"/>`);
+      if (x(e) - x(s) > 60) parts.push(`<text class="band-label" x="${x(s) + 6}" y="${pad.t - 7}">${text}</text>`);
+    };
+    band(heldOut, lastObs, "var(--band-heldout)", "Held out");
+    band(lastObs, n - 1, "var(--band-forecast)", "Forecast");
+
+    // y grid
+    const ys = niceStep(hi - lo, 6);
+    const axis = [];
+    for (let v = Math.ceil(lo / ys) * ys; v <= hi; v += ys) {
+      axis.push(`<line x1="${pad.l}" x2="${W - pad.r}" y1="${y(v)}" y2="${y(v)}"/>`);
+      axis.push(`<text x="${pad.l - 8}" y="${y(v) + 4}" text-anchor="end">${Math.round(v)}</text>`);
+    }
+    // x ticks on years
+    const yrSpan = (i1 - i0) / 12, xs = niceStep(yrSpan, W < 560 ? 5 : 10);
+    const firstYear = Math.ceil(yearOf(i0) / xs) * xs;
+    for (let yr = firstYear; yr <= yearOf(i1); yr += xs) {
+      const i = index[`${yr}-01`]; if (i == null) continue;
+      axis.push(`<text x="${x(i)}" y="${H - 8}" text-anchor="middle">${yr}</text>`);
+    }
+    parts.unshift(`<g class="axis">${axis.join("")}</g>`);
+
+    const path = (arr) => {
+      let d = "", pen = false;
+      for (let i = i0; i <= i1; i++) {
+        const v = arr[i];
+        if (v == null) { pen = false; continue; }
+        d += `${pen ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`; pen = true;
+      }
+      return d;
+    };
+
+    for (const k of series) {
+      const faded = state.showAll && k !== state.model;
+      parts.push(`<path d="${path(D.models[k].pred)}" fill="none" stroke="${color(k)}" stroke-width="2"
+        stroke-linejoin="round" opacity="${faded ? 0.55 : 1}"/>`);
+    }
+    parts.push(`<path d="${path(D.observed)}" fill="none" stroke="var(--observed)" stroke-width="1.25" stroke-linejoin="round"/>`);
+
+    // selection
+    const s = state.sel;
+    if (s >= i0 && s <= i1) {
+      parts.push(`<line x1="${x(s)}" x2="${x(s)}" y1="${pad.t}" y2="${H - pad.b}" stroke="var(--text-secondary)" stroke-dasharray="3 3"/>`);
+      const pv = D.models[state.model].pred[s];
+      parts.push(`<circle cx="${x(s)}" cy="${y(pv)}" r="5" fill="${color(state.model)}" stroke="var(--surface-1)" stroke-width="2"/>`);
+      if (D.observed[s] != null)
+        parts.push(`<circle cx="${x(s)}" cy="${y(D.observed[s])}" r="4.5" fill="var(--observed)" stroke="var(--surface-1)" stroke-width="2"/>`);
+    }
+
+    // hover layer
+    parts.push(`<line id="hover-line" y1="${pad.t}" y2="${H - pad.b}" stroke="var(--text-muted)" visibility="hidden"/>`);
+    parts.push(`<rect id="hit" x="${pad.l}" y="${pad.t}" width="${W - pad.l - pad.r}" height="${H - pad.t - pad.b}" fill="transparent" style="cursor:crosshair"/>`);
+
+    chartEl.innerHTML = `<svg xmlns="${NS}" viewBox="0 0 ${W} ${H}" tabindex="0" role="img"
+      aria-label="CO2 in ppm over time, observed and ${D.models[state.model].label} model">${parts.join("")}</svg>`;
+    chartEl.appendChild(tooltip);
+    svg = chartEl.querySelector("svg");
+    bindChart();
+
+    $("legend").innerHTML =
+      `<span><span class="swatch" style="background:var(--observed)"></span>Measured</span>` +
+      series.map((k) => `<span><span class="swatch" style="background:${color(k)}"></span>${D.models[k].label}</span>`).join("");
+  }
+
+  function indexAt(evt) {
+    const rect = svg.getBoundingClientRect();
+    const px = ((evt.clientX - rect.left) / rect.width) * geom.W;
+    const f = (px - geom.pad.l) / (geom.W - geom.pad.l - geom.pad.r);
+    return clamp(Math.round(geom.i0 + f * (geom.i1 - geom.i0)));
+  }
+
+  function bindChart() {
+    const hit = svg.querySelector("#hit"), line = svg.querySelector("#hover-line");
+    hit.addEventListener("mousemove", (e) => {
+      const i = indexAt(e), xi = geom.x(i);
+      line.setAttribute("x1", xi); line.setAttribute("x2", xi); line.setAttribute("visibility", "visible");
+      const rows = [];
+      if (D.observed[i] != null)
+        rows.push(`<div class="tt-row"><span class="swatch" style="background:var(--observed)"></span>Measured<b>${fmt(D.observed[i])}</b></div>`);
+      for (const k of visibleModels())
+        rows.push(`<div class="tt-row"><span class="swatch" style="background:${color(k)}"></span>${D.models[k].label}<b>${fmt(D.models[k].pred[i])}</b></div>`);
+      tooltip.innerHTML = `<div style="font-weight:600;margin-bottom:4px">${label(i)} · ppm</div>${rows.join("")}`;
+      tooltip.style.display = "block";
+      const rect = svg.getBoundingClientRect(), scale = rect.width / geom.W;
+      let left = xi * scale + 14;
+      if (left + tooltip.offsetWidth > rect.width) left = xi * scale - tooltip.offsetWidth - 14;
+      tooltip.style.left = `${left}px`;
+      tooltip.style.top = `${geom.pad.t * scale + 8}px`;
+    });
+    hit.addEventListener("mouseleave", () => { tooltip.style.display = "none"; line.setAttribute("visibility", "hidden"); });
+    hit.addEventListener("click", (e) => select(indexAt(e)));
+    svg.addEventListener("keydown", (e) => {
+      const step = e.shiftKey ? 12 : 1;
+      if (e.key === "ArrowLeft") { e.preventDefault(); select(state.sel - step); svg_focus(); }
+      if (e.key === "ArrowRight") { e.preventDefault(); select(state.sel + step); svg_focus(); }
+    });
+  }
+  function svg_focus() { chartEl.querySelector("svg")?.focus(); }
+
+  function render() { renderPanel(); renderChart(); }
+
+  $("subtitle").textContent =
+    `Monthly mean CO₂ at Mauna Loa, ${label(0)} – ${label(lastObs)}. ` +
+    `The models were fitted on ${label(0)} – Dec 2015 only; everything after that is a prediction.`;
+  $("note").textContent =
+    "Forecasts assume the past pattern simply continues. No model of past CO₂ alone can know future emissions, " +
+    "so the further ahead you look, the more the three models disagree. Source: " + D.meta.source + ".";
+
+  // Re-render only on width changes; the chart's own height change would otherwise retrigger it
+  let lastWidth = 0;
+  new ResizeObserver(() => {
+    if (chartEl.clientWidth !== lastWidth) { lastWidth = chartEl.clientWidth; renderChart(); }
+  }).observe(chartEl);
+  render();
+})();
+</script>
+</body>
+</html>
