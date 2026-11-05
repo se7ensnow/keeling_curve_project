@@ -97,7 +97,72 @@
     background: var(--surface-1); color: var(--text-secondary); padding: 6px 10px; cursor: pointer;
   }
   .btn:hover, .seg button:hover { color: var(--text-primary); }
-  .check { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-secondary); cursor: pointer; }
+  .search-field { margin-left: auto; }
+  .search-wrap { position: relative; }
+  #search {
+    font: inherit; padding: 6px 8px; width: 200px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--surface-1); color: var(--text-primary);
+  }
+  .suggest {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 30; margin: 0; padding: 4px; list-style: none;
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25); max-height: 280px; overflow-y: auto;
+  }
+  .suggest[hidden] { display: none; }
+  .suggest li {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 6px 8px;
+    border-radius: 6px; font-size: 14px; cursor: pointer; font-variant-numeric: tabular-nums;
+  }
+  .suggest li small { font-size: 11px; color: var(--text-muted); }
+  .suggest li[aria-selected="true"], .suggest li:hover { background: var(--surface-0); }
+  .msg {
+    position: absolute; top: calc(100% + 4px); right: 0; width: max-content; max-width: 260px; text-align: right;
+    font-size: 12px; line-height: 1.3; color: var(--text-secondary);
+  }
+  @media (max-width: 640px) { .search-field { margin-left: 0; width: 100%; } #search { width: 100%; } }
+  #chart svg + svg { margin-top: 4px; }
+  #chart svg { user-select: none; }
+  .chart-tools { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; margin-bottom: 10px; }
+  .tool-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .lbl { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+  .seg button:disabled { opacity: 0.4; cursor: default; }
+  .legend { margin-bottom: 8px; }
+  .brush { fill: var(--m-linear); fill-opacity: 0.15; stroke: var(--m-linear); stroke-width: 1; }
+  .chart-title { fill: var(--text-primary); font-size: 13px; font-weight: 600; }
+
+  .slider-block { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .slider-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 16px; margin-bottom: 4px; }
+  .slider-head .now { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .slider-head .now small { font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-left: 8px; }
+  .zones { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--text-secondary); }
+  .zones span { display: inline-flex; align-items: center; gap: 6px; }
+  .zones i { width: 12px; height: 8px; border-radius: 2px; display: inline-block; }
+  .z-train { background: var(--zone-train); }
+  .z-held { background: var(--zone-held); }
+  .z-fore { background: var(--zone-fore); }
+  :root {
+    --zone-train: color-mix(in srgb, var(--text-muted) 35%, var(--surface-1));
+    --zone-held: color-mix(in srgb, var(--m-linear) 55%, var(--surface-1));
+    --zone-fore: color-mix(in srgb, var(--text-muted) 14%, var(--surface-1));
+  }
+
+  #slider {
+    -webkit-appearance: none; appearance: none; width: 100%; height: 32px; margin: 0;
+    background: transparent; cursor: pointer; touch-action: pan-y;
+  }
+  #slider::-webkit-slider-runnable-track { height: 10px; border-radius: 5px; background: var(--track); }
+  #slider::-moz-range-track { height: 10px; border-radius: 5px; background: var(--track); }
+  #slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 22px; height: 22px; margin-top: -6px; border-radius: 50%;
+    background: var(--text-primary); border: 3px solid var(--surface-1); box-shadow: 0 0 0 1px var(--text-muted);
+  }
+  #slider::-moz-range-thumb {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--text-primary); border: 3px solid var(--surface-1); box-shadow: 0 0 0 1px var(--text-muted);
+  }
+  #slider:focus-visible { outline: 2px solid var(--m-linear); outline-offset: 4px; border-radius: 6px; }
+  .ticks { position: relative; height: 18px; font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .ticks span { position: absolute; top: 0; white-space: nowrap; }
 
   .grid { display: grid; grid-template-columns: 320px 1fr; gap: 16px; }
   @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
@@ -121,7 +186,6 @@
   tr.active td { font-weight: 700; }
   h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin: 20px 0 0; }
 
-  .chart-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 8px; }
   .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--text-secondary); }
   .legend span { display: inline-flex; align-items: center; gap: 6px; }
   #chart { position: relative; width: 100%; }
@@ -148,7 +212,7 @@
 
   <div class="controls card">
     <div class="field">
-      <span>Model</span>
+      <span>Details for</span>
       <div class="seg" id="model-seg" role="group" aria-label="Model"></div>
     </div>
     <div class="field">
@@ -157,6 +221,16 @@
         <button class="btn" id="prev" aria-label="Previous month">‹</button>
         <input type="month" id="month" aria-label="Select month">
         <button class="btn" id="next" aria-label="Next month">›</button>
+      </div>
+    </div>
+    <div class="field search-field">
+      <span>Search by name</span>
+      <div class="search-wrap">
+        <input type="search" id="search" placeholder="e.g. March 2040" autocomplete="off" spellcheck="false"
+               role="combobox" aria-expanded="false" aria-controls="suggest" aria-autocomplete="list"
+               aria-label="Search for a month by name, for example March 2040" aria-describedby="search-msg">
+        <ul class="suggest" id="suggest" role="listbox" aria-label="Matching months" hidden></ul>
+        <small class="msg" id="search-msg" role="status"></small>
       </div>
     </div>
     <div class="field">
@@ -179,18 +253,47 @@
     </section>
 
     <section class="card">
-      <div class="chart-head">
-        <div class="legend" id="legend"></div>
-        <div style="display:flex; gap:14px; align-items:center; flex-wrap:wrap;">
-          <label class="check"><input type="checkbox" id="show-all"> Compare all models</label>
-          <div class="seg" id="range-seg" role="group" aria-label="Chart range">
-            <button data-range="all" aria-pressed="true">Full range</button>
-            <button data-range="zoom" aria-pressed="false">±5 years</button>
+      <div class="chart-tools">
+        <div class="tool-group">
+          <span class="lbl">Show on graph</span>
+          <div class="seg" id="show-seg" role="group" aria-label="Models drawn on the graph"></div>
+        </div>
+        <div class="tool-group">
+          <span class="lbl">Layout</span>
+          <div class="seg" id="layout-seg" role="group" aria-label="Layout when two or more models are shown">
+            <button data-layout="overlay" aria-pressed="true">Overlay</button>
+            <button data-layout="side" aria-pressed="false">Side by side</button>
+          </div>
+        </div>
+        <div class="tool-group">
+          <span class="lbl">Zoom</span>
+          <div class="seg">
+            <button id="zoom-out" aria-label="Zoom out">−</button>
+            <button id="zoom-in" aria-label="Zoom in">+</button>
+          </div>
+          <div class="seg" id="zoom-seg" role="group" aria-label="Zoom presets, centred on the selected month">
+            <button data-years="0" aria-pressed="true">All</button>
+            <button data-years="50" aria-pressed="false">50 yrs</button>
+            <button data-years="10" aria-pressed="false">10 yrs</button>
+            <button data-years="2" aria-pressed="false">2 yrs</button>
           </div>
         </div>
       </div>
+      <div class="legend" id="legend"></div>
       <div id="chart"></div>
-      <p class="hint">Click the chart to pick a month. With the chart focused, the arrow keys move by a month (hold Shift for a year).</p>
+      <div class="slider-block">
+        <div class="slider-head">
+          <div class="now"><span id="sl-label"></span><small id="sl-region"></small></div>
+          <div class="zones" aria-hidden="true">
+            <span><i class="z-train"></i>Used to fit</span>
+            <span><i class="z-held"></i>Held out</span>
+            <span><i class="z-fore"></i>Forecast</span>
+          </div>
+        </div>
+        <input type="range" id="slider" min="0" step="1" aria-label="Month: drag to move through time">
+        <div class="ticks" id="sl-ticks" aria-hidden="true"></div>
+      </div>
+      <p class="hint">Drag the slider or click the graph to pick a month. Drag across the graph to zoom to that stretch, Ctrl+scroll to zoom at the pointer, double-click to reset. With a graph focused, the arrow keys move by a month (hold Shift for a year).</p>
     </section>
   </div>
 
@@ -209,7 +312,8 @@
   const modelKeys = Object.keys(D.models);
   const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-  const state = { model: "exponential_seasonal", sel: lastObs, range: "all", showAll: false };
+  const state = { model: "exponential_seasonal", sel: lastObs, win: null, layout: "overlay",
+                  shown: new Set(["exponential_seasonal"]) };
 
   const $ = (id) => document.getElementById(id);
   const color = (key) => `var(--m-${key})`;
@@ -231,7 +335,7 @@
   ).join("");
   $("model-seg").addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
-    state.model = b.dataset.model; render();
+    state.model = b.dataset.model; state.shown.add(state.model); render();
   });
 
   const jumps = [
@@ -250,17 +354,186 @@
   const input = $("month");
   input.min = months[0];
   input.max = months[n - 1];
+
+  // Slider over every month; the track is shaded by what each stretch of time is
+  const slider = $("slider");
+  slider.max = n - 1;
+  const pct = (i) => (i / (n - 1)) * 100;
+  slider.style.setProperty("--track",
+    `linear-gradient(to right, var(--zone-train) 0 ${pct(heldOut)}%, var(--zone-held) ${pct(heldOut)}% ${pct(lastObs)}%, var(--zone-fore) ${pct(lastObs)}% 100%)`);
+  $("sl-ticks").innerHTML =
+    `<span style="left:0">${months[0].slice(0, 4)}</span>` +
+    `<span style="left:${pct(lastObs)}%;transform:translateX(-50%)">${label(lastObs)}</span>` +
+    `<span style="right:0">${months[n - 1].slice(0, 4)}</span>`;
+  let frame = 0;
+  slider.addEventListener("input", () => {
+    state.sel = +slider.value;
+    revealSelection();
+    if (!frame) frame = requestAnimationFrame(() => { frame = 0; render(); }); // one redraw per frame while dragging
+  });
   input.addEventListener("change", () => { if (input.value in index) select(index[input.value]); });
   $("prev").addEventListener("click", () => select(state.sel - 1));
   $("next").addEventListener("click", () => select(state.sel + 1));
 
-  $("show-all").addEventListener("change", (e) => { state.showAll = e.target.checked; render(); });
-  $("range-seg").addEventListener("click", (e) => {
+  // Search by month name: "March 2040", "mar 2040", "2040-03", "3/2040". A year alone keeps the
+  // selected month; a month alone keeps the selected year.
+  const FULL_NAMES = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+  const MONTH_LOOKUP = { sept: 9 };
+  FULL_NAMES.forEach((name, k) => { MONTH_LOOKUP[name] = k + 1; MONTH_LOOKUP[name.slice(0, 3)] = k + 1; });
+  const fullLabel = (i) => {
+    const name = FULL_NAMES[+months[i].slice(5) - 1];
+    return `${name[0].toUpperCase()}${name.slice(1)} ${months[i].slice(0, 4)}`;
+  };
+  const byLabel = Object.fromEntries(months.map((_, i) => [fullLabel(i).toLowerCase(), i]));
+  const stage = (i) => i > lastObs ? "forecast" : i >= heldOut ? "held out" : "fitted";
+
+  function parseMonthQuery(text) {
+    const tokens = text.toLowerCase().replace(/[,/.\-]/g, " ").split(/\s+/).filter(Boolean);
+    let month = null, year = null;
+    for (const t of tokens) {
+      if (/^\d{4}$/.test(t)) year = +t;
+      else if (/^\d{1,2}$/.test(t)) month = +t;
+      else if (t in MONTH_LOOKUP) month = MONTH_LOOKUP[t];
+      else return null;
+    }
+    if ((month == null && year == null) || (month != null && (month < 1 || month > 12))) return null;
+    const cur = months[state.sel];
+    month = month ?? +cur.slice(5);
+    year = year ?? +cur.slice(0, 4);
+    return `${year}-${String(month).padStart(2, "0")}`;
+  }
+
+  // Suggestions are drawn in our own list, so they sit directly under the box at its width
+  const searchBox = $("search"), searchMsg = $("search-msg"), suggest = $("suggest");
+  let matches = [], active = -1;
+
+  // Months that fit what has been typed so far, nearest to the selected month first
+  function suggestionsFor(text) {
+    const tokens = text.toLowerCase().replace(/[,/.\-]/g, " ").split(/\s+/).filter(Boolean);
+    if (!tokens.length) return [];
+    const found = [];
+    for (let i = 0; i < n; i++) {
+      const m = +months[i].slice(5), year = months[i].slice(0, 4);
+      const fits = tokens.every((t) => /^\d+$/.test(t)
+        ? year.startsWith(t) || (t.length <= 2 && +t === m)
+        : FULL_NAMES[m - 1].startsWith(t) || (t === "sept" && m === 9));
+      if (fits) found.push(i);
+    }
+    return found.sort((a, b) => Math.abs(a - state.sel) - Math.abs(b - state.sel)).slice(0, 8);
+  }
+
+  function showSuggestions() {
+    matches = suggestionsFor(searchBox.value);
+    active = -1;
+    suggest.innerHTML = matches.map((i, k) =>
+      `<li role="option" id="opt-${k}" data-i="${i}" aria-selected="false">${fullLabel(i)}<small>${stage(i)}</small></li>`
+    ).join("");
+    suggest.hidden = !matches.length;
+    searchBox.setAttribute("aria-expanded", String(matches.length > 0));
+    searchBox.removeAttribute("aria-activedescendant");
+  }
+  function hideSuggestions() {
+    suggest.hidden = true;
+    active = -1;
+    searchBox.setAttribute("aria-expanded", "false");
+  }
+  function setActive(k) {
+    active = (k + matches.length) % matches.length;
+    [...suggest.children].forEach((li, j) => li.setAttribute("aria-selected", String(j === active)));
+    searchBox.setAttribute("aria-activedescendant", `opt-${active}`);
+    suggest.children[active].scrollIntoView({ block: "nearest" });
+  }
+  function choose(i) {
+    searchMsg.textContent = "";
+    searchBox.value = fullLabel(i);
+    hideSuggestions();
+    select(i);
+  }
+
+  function runSearch() {
+    const text = searchBox.value.trim();
+    if (!text) { searchMsg.textContent = ""; return; }
+    const key = parseMonthQuery(text);
+    if (key && key in index) { choose(index[key]); return; }
+    hideSuggestions();
+    searchMsg.textContent = key
+      ? `No data for that month. The page covers ${label(0)} to ${label(n - 1)}.`
+      : "Try a month and year, like March 2040, mar 2040 or 2040-03.";
+  }
+
+  searchBox.addEventListener("input", () => {
+    searchMsg.textContent = "";
+    const hit = byLabel[searchBox.value.trim().toLowerCase()];
+    if (hit != null) { hideSuggestions(); select(hit); return; } // a full "Month Year" jumps straight there
+    showSuggestions();
+  });
+  searchBox.addEventListener("focus", () => { if (searchBox.value.trim()) showSuggestions(); });
+  searchBox.addEventListener("blur", hideSuggestions);
+  searchBox.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      if (suggest.hidden) showSuggestions();
+      if (!matches.length) return;
+      e.preventDefault();
+      const down = e.key === "ArrowDown";
+      setActive(active < 0 ? (down ? 0 : matches.length - 1) : active + (down ? 1 : -1));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (active >= 0) choose(matches[active]); else runSearch();
+    } else if (e.key === "Escape") {
+      hideSuggestions();
+    }
+  });
+  suggest.addEventListener("mousedown", (e) => e.preventDefault()); // keep the cursor in the box
+  suggest.addEventListener("click", (e) => { const li = e.target.closest("li"); if (li) choose(+li.dataset.i); });
+
+  // Which models are drawn: any subset of the three, including none
+  $("show-seg").innerHTML = modelKeys.map((k) =>
+    `<button data-show="${k}"><span class="swatch" style="background:${color(k)}"></span>${D.models[k].label}</button>`
+  ).join("");
+  $("show-seg").addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
-    state.range = b.dataset.range; render();
+    const k = b.dataset.show;
+    if (state.shown.has(k)) state.shown.delete(k); else state.shown.add(k);
+    render();
+  });
+  $("layout-seg").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b || b.disabled) return;
+    state.layout = b.dataset.layout; render();
   });
 
-  function select(i) { state.sel = clamp(i); render(); }
+  // Zoom. The window is a stretch of months; null means the whole record.
+  const MIN_SPAN = 12;
+  function viewSpan() { return state.win ? [state.win.a, state.win.b] : [0, n - 1]; }
+  // When the selected month moves out of a zoomed window, slide the window to it. Only the
+  // selection moving does this, so a deliberate zoom onto some other stretch is left alone.
+  function revealSelection() {
+    if (!state.win || (state.sel >= state.win.a && state.sel <= state.win.b)) return;
+    const w = state.win.b - state.win.a;
+    const a = Math.round(Math.max(0, Math.min(n - 1 - w, state.sel - w / 2)));
+    state.win = { a, b: a + w };
+  }
+  function setWindow(a, b) {
+    const w = Math.max(MIN_SPAN, Math.round(b - a));
+    if (w >= n - 1) state.win = null;
+    else { const start = Math.round(Math.max(0, Math.min(n - 1 - w, a))); state.win = { a: start, b: start + w }; }
+    render();
+  }
+  function zoomBy(factor, anchor) {
+    const [a, b] = viewSpan(), w = b - a;
+    const nw = Math.max(MIN_SPAN, Math.min(n - 1, w * factor));
+    const from = anchor - ((anchor - a) / w) * nw; // keeps the anchor month under the same spot
+    setWindow(from, from + nw);
+  }
+  function buttonAnchor() { const [a, b] = viewSpan(); return state.sel >= a && state.sel <= b ? state.sel : (a + b) / 2; }
+  $("zoom-in").addEventListener("click", () => zoomBy(0.5, buttonAnchor()));
+  $("zoom-out").addEventListener("click", () => zoomBy(2, buttonAnchor()));
+  $("zoom-seg").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    const years = +b.dataset.years;
+    if (years) setWindow(state.sel - years * 6, state.sel + years * 6); else setWindow(0, n);
+  });
+
+  function select(i) { state.sel = clamp(i); revealSelection(); render(); }
 
   // ---------- result panel ----------
   function renderPanel() {
@@ -296,9 +569,23 @@
 
     document.querySelectorAll("#model-seg button").forEach((b) =>
       b.setAttribute("aria-pressed", b.dataset.model === state.model));
-    document.querySelectorAll("#range-seg button").forEach((b) =>
-      b.setAttribute("aria-pressed", b.dataset.range === state.range));
+    document.querySelectorAll("#show-seg button").forEach((b) =>
+      b.setAttribute("aria-pressed", state.shown.has(b.dataset.show)));
+    const several = state.shown.size >= 2;
+    document.querySelectorAll("#layout-seg button").forEach((b) => {
+      b.setAttribute("aria-pressed", b.dataset.layout === state.layout);
+      b.disabled = !several; // a layout only matters with two or more models
+    });
+    document.querySelectorAll("#zoom-seg button").forEach((b) => {
+      const years = +b.dataset.years;
+      b.setAttribute("aria-pressed", state.win ? Math.abs(state.win.b - state.win.a - years * 12) < 1 : years === 0);
+    });
     input.value = months[i];
+
+    slider.value = i;
+    slider.setAttribute("aria-valuetext", `${label(i)}, ${r.name.toLowerCase()}`);
+    $("sl-label").textContent = label(i);
+    $("sl-region").textContent = r.name === "Forecast" ? `forecast, ${((i - lastObs) / 12).toFixed(1)} yrs ahead` : r.name.toLowerCase();
   }
 
   // ---------- chart ----------
@@ -306,58 +593,55 @@
   const chartEl = $("chart");
   const tooltip = document.createElement("div");
   tooltip.className = "tooltip";
-  let svg, geom;
+  let charts = []; // one entry per drawn graph: { svg, line, hit, brush, geom }
 
-  function visibleModels() { return state.showAll ? modelKeys : [state.model]; }
+  // Any subset of the three models, including none
+  function visibleModels() { return modelKeys.filter((k) => state.shown.has(k)); }
 
   function niceStep(span, target) {
     const raw = span / target, p = Math.pow(10, Math.floor(Math.log10(raw)));
     return [1, 2, 5, 10].map((s) => s * p).find((s) => s >= raw);
   }
 
-  function renderChart() {
-    const W = Math.max(320, chartEl.clientWidth), H = W < 560 ? 300 : 400;
-    const pad = { l: 44, r: 12, t: 22, b: 28 };
-
-    let i0 = 0, i1 = n - 1;
-    if (state.range === "zoom") { i0 = clamp(state.sel - 60); i1 = clamp(state.sel + 60); }
-
-    const series = visibleModels();
-    let lo = Infinity, hi = -Infinity;
-    for (let i = i0; i <= i1; i++) {
-      const vals = series.map((k) => D.models[k].pred[i]).concat(D.observed[i] ?? []);
-      for (const v of vals) { if (v < lo) lo = v; if (v > hi) hi = v; }
-    }
-    const span = hi - lo || 1; lo -= span * 0.05; hi += span * 0.05;
-
+  // Returns one <svg> as a string, plus the geometry the mouse code needs
+  function drawChart({ series, W, H, lo, hi, i0, i1, title, titleKey, xAxis, bandLabels }) {
+    const pad = { l: 44, r: 12, t: title ? 40 : 22, b: xAxis ? 28 : 8 };
     const x = (i) => pad.l + ((i - i0) / (i1 - i0)) * (W - pad.l - pad.r);
     const y = (v) => pad.t + (1 - (v - lo) / (hi - lo)) * (H - pad.t - pad.b);
-    geom = { i0, i1, x, pad, W, H };
+    const geom = { i0, i1, x, pad, W, H };
 
     const parts = [];
-    // bands
     const band = (a, b, fill, text) => {
       const s = Math.max(a, i0), e = Math.min(b, i1);
       if (e <= s) return;
       parts.push(`<rect x="${x(s)}" y="${pad.t}" width="${x(e) - x(s)}" height="${H - pad.t - pad.b}" fill="${fill}"/>`);
-      if (x(e) - x(s) > 60) parts.push(`<text class="band-label" x="${x(s) + 6}" y="${pad.t - 7}">${text}</text>`);
+      if (bandLabels && x(e) - x(s) > 60) parts.push(`<text class="band-label" x="${x(s) + 6}" y="${pad.t - 7}">${text}</text>`);
     };
     band(heldOut, lastObs, "var(--band-heldout)", "Held out");
     band(lastObs, n - 1, "var(--band-forecast)", "Forecast");
 
-    // y grid
-    const ys = niceStep(hi - lo, 6);
+    const ys = niceStep(hi - lo, H < 260 ? 4 : 6);
     const axis = [];
     for (let v = Math.ceil(lo / ys) * ys; v <= hi; v += ys) {
       axis.push(`<line x1="${pad.l}" x2="${W - pad.r}" y1="${y(v)}" y2="${y(v)}"/>`);
       axis.push(`<text x="${pad.l - 8}" y="${y(v) + 4}" text-anchor="end">${Math.round(v)}</text>`);
     }
-    // x ticks on years
-    const yrSpan = (i1 - i0) / 12, xs = niceStep(yrSpan, W < 560 ? 5 : 10);
-    const firstYear = Math.ceil(yearOf(i0) / xs) * xs;
-    for (let yr = firstYear; yr <= yearOf(i1); yr += xs) {
-      const i = index[`${yr}-01`]; if (i == null) continue;
-      axis.push(`<text x="${x(i)}" y="${H - 8}" text-anchor="middle">${yr}</text>`);
+    if (xAxis) {
+      const spanYears = (i1 - i0) / 12;
+      const xs = niceStep(spanYears, W < 560 ? 5 : 10);
+      const zoomedIn = spanYears < 12; // label months once the view is only a few years wide
+      if (zoomedIn) {
+        for (let i = i0; i <= i1; i++) {
+          const m = +months[i].slice(5);
+          if (m === 1 || (spanYears < 5 && m % 3 === 1))
+            axis.push(`<text x="${x(i)}" y="${H - 8}" text-anchor="middle">${m === 1 ? months[i].slice(0, 4) : MONTH_NAMES[m - 1]}</text>`);
+        }
+      } else {
+        for (let yr = Math.ceil(yearOf(i0) / xs) * xs; yr <= yearOf(i1); yr += xs) {
+          const i = index[`${yr}-01`]; if (i == null) continue;
+          axis.push(`<text x="${x(i)}" y="${H - 8}" text-anchor="middle">${yr}</text>`);
+        }
+      }
     }
     parts.unshift(`<g class="axis">${axis.join("")}</g>`);
 
@@ -371,72 +655,166 @@
       return d;
     };
 
-    for (const k of series) {
-      const faded = state.showAll && k !== state.model;
-      parts.push(`<path d="${path(D.models[k].pred)}" fill="none" stroke="${color(k)}" stroke-width="2"
-        stroke-linejoin="round" opacity="${faded ? 0.55 : 1}"/>`);
-    }
+    for (const k of series)
+      parts.push(`<path d="${path(D.models[k].pred)}" fill="none" stroke="${color(k)}" stroke-width="2" stroke-linejoin="round"/>`);
     parts.push(`<path d="${path(D.observed)}" fill="none" stroke="var(--observed)" stroke-width="1.25" stroke-linejoin="round"/>`);
 
-    // selection
+    // the selected month
     const s = state.sel;
     if (s >= i0 && s <= i1) {
       parts.push(`<line x1="${x(s)}" x2="${x(s)}" y1="${pad.t}" y2="${H - pad.b}" stroke="var(--text-secondary)" stroke-dasharray="3 3"/>`);
-      const pv = D.models[state.model].pred[s];
-      parts.push(`<circle cx="${x(s)}" cy="${y(pv)}" r="5" fill="${color(state.model)}" stroke="var(--surface-1)" stroke-width="2"/>`);
+      for (const k of series)
+        parts.push(`<circle cx="${x(s)}" cy="${y(D.models[k].pred[s])}" r="5" fill="${color(k)}" stroke="var(--surface-1)" stroke-width="2"/>`);
       if (D.observed[s] != null)
         parts.push(`<circle cx="${x(s)}" cy="${y(D.observed[s])}" r="4.5" fill="var(--observed)" stroke="var(--surface-1)" stroke-width="2"/>`);
     }
 
-    // hover layer
-    parts.push(`<line id="hover-line" y1="${pad.t}" y2="${H - pad.b}" stroke="var(--text-muted)" visibility="hidden"/>`);
-    parts.push(`<rect id="hit" x="${pad.l}" y="${pad.t}" width="${W - pad.l - pad.r}" height="${H - pad.t - pad.b}" fill="transparent" style="cursor:crosshair"/>`);
+    if (title) {
+      parts.push(`<line x1="${pad.l + 4}" x2="${pad.l + 22}" y1="15" y2="15" stroke="${color(titleKey)}" stroke-width="3" stroke-linecap="round"/>`);
+      parts.push(`<text class="chart-title" x="${pad.l + 30}" y="19">${title}</text>`);
+    }
 
-    chartEl.innerHTML = `<svg xmlns="${NS}" viewBox="0 0 ${W} ${H}" tabindex="0" role="img"
-      aria-label="CO2 in ppm over time, observed and ${D.models[state.model].label} model">${parts.join("")}</svg>`;
+    const plotH = H - pad.t - pad.b;
+    parts.push(`<rect class="brush" x="0" y="${pad.t}" width="0" height="${plotH}" visibility="hidden" pointer-events="none"/>`);
+    parts.push(`<line class="hover-line" y1="${pad.t}" y2="${H - pad.b}" stroke="var(--text-muted)" visibility="hidden"/>`);
+    parts.push(`<rect class="hit" x="${pad.l}" y="${pad.t}" width="${W - pad.l - pad.r}" height="${plotH}" fill="transparent" style="cursor:crosshair"/>`);
+
+    const names = series.length ? series.map((k) => D.models[k].label).join(", ") : "no model";
+    return {
+      geom,
+      html: `<svg xmlns="${NS}" viewBox="0 0 ${W} ${H}" tabindex="0" role="img"
+        aria-label="CO2 in ppm over time: measured data and ${names}">${parts.join("")}</svg>`,
+    };
+  }
+
+  function renderChart() {
+    const W = Math.max(320, chartEl.clientWidth);
+
+    const [i0, i1] = viewSpan();
+
+    // One y-range for every graph, so the graphs can be compared by eye
+    const keys = visibleModels();
+    let lo = Infinity, hi = -Infinity;
+    const scan = (list) => {
+      for (let i = i0; i <= i1; i++)
+        for (const v of list.map((k) => D.models[k].pred[i]).concat(D.observed[i] ?? [])) {
+          if (v < lo) lo = v; if (v > hi) hi = v;
+        }
+    };
+    scan(keys);
+    if (!isFinite(lo)) scan(modelKeys); // nothing measured or shown here: scale to the models anyway
+    const span = hi - lo || 1; lo -= span * 0.05; hi += span * 0.05;
+    const base = { W, lo, hi, i0, i1 };
+
+    const side = state.layout === "side" && keys.length >= 2;
+    let drawn;
+    if (side) {
+      const h = W < 560 ? 190 : 230, last = keys.length - 1;
+      drawn = keys.map((k, idx) => drawChart({
+        ...base, series: [k], H: idx === last ? h + 20 : h, xAxis: idx === last, bandLabels: idx === 0,
+        title: `${D.models[k].label} · held-out RMSE ${fmt(D.models[k].test_rmse)} ppm`, titleKey: k,
+      }));
+    } else {
+      drawn = [drawChart({ ...base, series: keys, H: W < 560 ? 300 : 400, xAxis: true, bandLabels: true })];
+    }
+
+    chartEl.innerHTML = drawn.map((d) => d.html).join("");
     chartEl.appendChild(tooltip);
-    svg = chartEl.querySelector("svg");
-    bindChart();
+    charts = [...chartEl.querySelectorAll("svg")].map((svg, i) => ({
+      svg, line: svg.querySelector(".hover-line"), hit: svg.querySelector(".hit"),
+      brush: svg.querySelector(".brush"), geom: drawn[i].geom,
+    }));
+    bindCharts();
 
     $("legend").innerHTML =
       `<span><span class="swatch" style="background:var(--observed)"></span>Measured</span>` +
-      series.map((k) => `<span><span class="swatch" style="background:${color(k)}"></span>${D.models[k].label}</span>`).join("");
+      keys.map((k) => `<span><span class="swatch" style="background:${color(k)}"></span>${D.models[k].label}</span>`).join("") +
+      (keys.length ? "" : `<span>No model shown. Use Show on graph to add one.</span>`);
   }
 
-  function indexAt(evt) {
-    const rect = svg.getBoundingClientRect();
-    const px = ((evt.clientX - rect.left) / rect.width) * geom.W;
-    const f = (px - geom.pad.l) / (geom.W - geom.pad.l - geom.pad.r);
-    return clamp(Math.round(geom.i0 + f * (geom.i1 - geom.i0)));
+  function indexAt(c, evt) {
+    const rect = c.svg.getBoundingClientRect();
+    const px = ((evt.clientX - rect.left) / rect.width) * c.geom.W;
+    const f = (px - c.geom.pad.l) / (c.geom.W - c.geom.pad.l - c.geom.pad.r);
+    return Math.max(c.geom.i0, Math.min(c.geom.i1, Math.round(c.geom.i0 + f * (c.geom.i1 - c.geom.i0))));
   }
 
-  function bindChart() {
-    const hit = svg.querySelector("#hit"), line = svg.querySelector("#hover-line");
-    hit.addEventListener("mousemove", (e) => {
-      const i = indexAt(e), xi = geom.x(i);
-      line.setAttribute("x1", xi); line.setAttribute("x2", xi); line.setAttribute("visibility", "visible");
-      const rows = [];
-      if (D.observed[i] != null)
-        rows.push(`<div class="tt-row"><span class="swatch" style="background:var(--observed)"></span>Measured<b>${fmt(D.observed[i])}</b></div>`);
-      for (const k of visibleModels())
-        rows.push(`<div class="tt-row"><span class="swatch" style="background:${color(k)}"></span>${D.models[k].label}<b>${fmt(D.models[k].pred[i])}</b></div>`);
-      tooltip.innerHTML = `<div style="font-weight:600;margin-bottom:4px">${label(i)} · ppm</div>${rows.join("")}`;
-      tooltip.style.display = "block";
-      const rect = svg.getBoundingClientRect(), scale = rect.width / geom.W;
-      let left = xi * scale + 14;
-      if (left + tooltip.offsetWidth > rect.width) left = xi * scale - tooltip.offsetWidth - 14;
-      tooltip.style.left = `${left}px`;
-      tooltip.style.top = `${geom.pad.t * scale + 8}px`;
-    });
-    hit.addEventListener("mouseleave", () => { tooltip.style.display = "none"; line.setAttribute("visibility", "hidden"); });
-    hit.addEventListener("click", (e) => select(indexAt(e)));
-    svg.addEventListener("keydown", (e) => {
-      const step = e.shiftKey ? 12 : 1;
-      if (e.key === "ArrowLeft") { e.preventDefault(); select(state.sel - step); svg_focus(); }
-      if (e.key === "ArrowRight") { e.preventDefault(); select(state.sel + step); svg_focus(); }
+  function hover(c, evt) {
+    const i = indexAt(c, evt);
+    // the crosshair follows the mouse on every graph, so stacked graphs stay lined up
+    for (const o of charts) {
+      const xi = o.geom.x(i);
+      o.line.setAttribute("x1", xi); o.line.setAttribute("x2", xi); o.line.setAttribute("visibility", "visible");
+    }
+    const rows = [];
+    if (D.observed[i] != null)
+      rows.push(`<div class="tt-row"><span class="swatch" style="background:var(--observed)"></span>Measured<b>${fmt(D.observed[i])}</b></div>`);
+    for (const k of visibleModels())
+      rows.push(`<div class="tt-row"><span class="swatch" style="background:${color(k)}"></span>${D.models[k].label}<b>${fmt(D.models[k].pred[i])}</b></div>`);
+    if (!rows.length) rows.push(`<div class="tt-row">Nothing to show for this month</div>`);
+    tooltip.innerHTML = `<div style="font-weight:600;margin-bottom:4px">${label(i)} · ppm</div>${rows.join("")}`;
+    tooltip.style.display = "block";
+
+    const box = chartEl.getBoundingClientRect(), r = c.svg.getBoundingClientRect(), scale = r.width / c.geom.W;
+    const px = r.left - box.left + c.geom.x(i) * scale;
+    let left = px + 14;
+    if (left + tooltip.offsetWidth > box.width) left = px - tooltip.offsetWidth - 14;
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${r.top - box.top + c.geom.pad.t * scale + 8}px`;
+  }
+
+  // Press and drag across a graph to zoom to that stretch; a plain click picks the month
+  function startBrush(c, idx, down) {
+    if (down.button !== 0) return;
+    down.preventDefault();
+    const startIdx = indexAt(c, down), startX = down.clientX;
+    let dragging = false, endIdx = startIdx;
+
+    const move = (e) => {
+      if (!dragging && Math.abs(e.clientX - startX) < 6) return;
+      dragging = true;
+      endIdx = indexAt(c, e);
+      const left = c.geom.x(Math.min(startIdx, endIdx)), right = c.geom.x(Math.max(startIdx, endIdx));
+      for (const o of charts) {
+        o.brush.setAttribute("x", left); o.brush.setAttribute("width", right - left);
+        o.brush.setAttribute("visibility", "visible");
+      }
+      tooltip.style.display = "none";
+    };
+    const up = () => {
+      document.removeEventListener("mousemove", move);
+      document.removeEventListener("mouseup", up);
+      if (!dragging) { select(startIdx); charts[idx]?.svg.focus(); return; }
+      for (const o of charts) o.brush.setAttribute("visibility", "hidden");
+      if (Math.abs(endIdx - startIdx) >= 3) setWindow(Math.min(startIdx, endIdx), Math.max(startIdx, endIdx));
+    };
+    document.addEventListener("mousemove", move);
+    document.addEventListener("mouseup", up);
+  }
+
+  function bindCharts() {
+    charts.forEach((c, idx) => {
+      c.hit.addEventListener("mousemove", (e) => hover(c, e));
+      c.hit.addEventListener("mouseleave", () => {
+        tooltip.style.display = "none";
+        for (const o of charts) o.line.setAttribute("visibility", "hidden");
+      });
+      c.hit.addEventListener("mousedown", (e) => startBrush(c, idx, e));
+      c.hit.addEventListener("wheel", (e) => {
+        if (!(e.ctrlKey || e.metaKey)) return; // plain scrolling still scrolls the page
+        e.preventDefault();
+        zoomBy(e.deltaY < 0 ? 0.8 : 1.25, indexAt(c, e));
+      }, { passive: false });
+      c.hit.addEventListener("dblclick", () => setWindow(0, n));
+      c.svg.addEventListener("keydown", (e) => {
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        e.preventDefault();
+        const step = e.shiftKey ? 12 : 1;
+        select(state.sel + (e.key === "ArrowLeft" ? -step : step));
+        charts[idx]?.svg.focus(); // the graphs were redrawn, so focus the new one
+      });
     });
   }
-  function svg_focus() { chartEl.querySelector("svg")?.focus(); }
 
   function render() { renderPanel(); renderChart(); }
 
