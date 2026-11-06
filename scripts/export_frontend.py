@@ -15,7 +15,14 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))  # so the script also runs without `pip install -e .`
 
 from keeling.data import load_co2_data, time_index  # noqa: E402
-from keeling.evaluate import fit_models, rmse  # noqa: E402
+from keeling.evaluate import (  # noqa: E402
+    backtest_forecasts,
+    fit_models,
+    forecast_year,
+    model_factories,
+    rmse,
+)
+from keeling.tool import ERROR_BAR_NOTE  # noqa: E402
 from keeling.split import HELD_OUT_START, train_test_split  # noqa: E402
 
 FORECAST_YEARS = 50
@@ -35,7 +42,10 @@ def main():
 
     observed = co2.set_index("date")["average"].reindex(months)
 
-    fitted, _ = fit_models(train)  # degree and harmonics are chosen on 2011-2015 validation data
+    fitted, selection = fit_models(train)  # degree and harmonics are chosen on 2011-2015 validation data
+    best = selection.iloc[0]
+    backtest = backtest_forecasts(train, model_factories(int(best["degree"]), int(best["harmonics"])))
+    summary_2035 = forecast_year(fitted, backtest, year=2035).set_index("Model")
 
     models = {}
     for label, model in fitted.items():
@@ -50,6 +60,12 @@ def main():
             "pred": r2(model.predict(t)),
             "trend": r2(model.trend(t)),
             "growth": [round(float(v), 3) for v in model.growth_rate(t)],
+            "forecast_2035": {
+                "mean": round(float(summary_2035.loc[label, "2035 mean (ppm)"]), 2),
+                "error_bar": round(float(summary_2035.loc[label, "Error bar (ppm)"]), 2),
+                "low": round(float(summary_2035.loc[label, "Low (ppm)"]), 2),
+                "high": round(float(summary_2035.loc[label, "High (ppm)"]), 2),
+            },
         }
         print(f"{label:24s} train RMSE {models[key]['train_rmse']:.3f}  "
               f"held-out RMSE {models[key]['test_rmse']:.3f} ppm")
@@ -61,6 +77,7 @@ def main():
             "last_observed": last.strftime("%Y-%m"),
             "held_out_start": HELD_OUT_START.strftime("%Y-%m"),
             "forecast_years": FORECAST_YEARS,
+            "error_bar_note": ERROR_BAR_NOTE,
         },
         "months": [m.strftime("%Y-%m") for m in months],
         "observed": [None if pd.isna(v) else round(float(v), 2) for v in observed],

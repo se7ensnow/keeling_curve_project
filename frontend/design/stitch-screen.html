@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "tertiary-fixed-dim": "#ffb690", "primary-fixed-dim": "#47d6ff", "on-background": "#e0e2ea", "on-secondary": "#003917", "surface": "#101419", "inverse-surface": "#e0e2ea", "on-primary-fixed-variant": "#004e60", "on-secondary-fixed-variant": "#005224", "tertiary-fixed": "#ffdbca", "on-error-container": "#ffdad6", "outline-variant": "#3c494e", "surface-container-highest": "#31353b", "on-primary": "#003543", "on-primary-fixed": "#001f28", "inverse-primary": "#00677f", "primary-container": "#00d2ff", "surface-bright": "#36393f", "on-secondary-container": "#005928", "on-tertiary": "#552100", "on-primary-container": "#00566a", "primary-fixed": "#b6ebff", "secondary-fixed-dim": "#23e373", "tertiary": "#ffd4bf", "on-surface-variant": "#bbc9cf", "on-secondary-fixed": "#00210b", "on-tertiary-fixed": "#341100", "on-tertiary-container": "#853800", "primary": "#a5e7ff", "surface-container": "#1c2025", "secondary": "#45f885", "error-container": "#93000a", "on-surface": "#e0e2ea", "error": "#ffb4ab", "surface-container-lowest": "#0a0f13", "background": "#101419", "inverse-on-surface": "#2d3136", "outline": "#859399", "on-tertiary-fixed-variant": "#783200", "tertiary-container": "#ffae83", "on-error": "#690005", "surface-container-high": "#262a30", "surface-variant": "#31353b", "surface-container-low": "#181c21", "surface-tint": "#47d6ff", "secondary-fixed": "#64ff92", "secondary-container": "#06db6c", "surface-dim": "#101419" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-lg": "1rem", "margin-tablet": "2rem", "margin-desktop": "3rem", "space-sm": "0.5rem", "space-2xl": "2rem", "space-2xs": "0.125rem", "gutter-desktop": "1.5rem", "space-xs": "0.25rem", "space-md": "0.75rem", "space-xl": "1.5rem", "margin": "1rem", "space-3xl": "3rem", "gutter": "1.25rem" }, "fontFamily": { "headline-md": [ "Geist" ], "headline-sm": [ "Geist" ], "label-caps": [ "Inter" ], "body-md": [ "Inter" ], "metric-lg": [ "JetBrains Mono" ], "metric-huge": [ "JetBrains Mono" ], "display-lg": [ "Geist" ], "body-lg": [ "Inter" ], "display-lg-mobile": [ "Geist" ], "metric-md": [ "JetBrains Mono" ], "body-sm": [ "Inter" ], "headline-lg": [ "Geist" ], "mono-label": [ "JetBrains Mono" ] }, "fontSize": { "headline-md": [ "1.5rem", { "lineHeight": "2rem", "letterSpacing": "-0.015em", "fontWeight": "600" } ], "headline-sm": [ "1.125rem", { "lineHeight": "1.5rem", "letterSpacing": "-0.01em", "fontWeight": "600" } ], "label-caps": [ "0.6875rem", { "lineHeight": "0.875rem", "letterSpacing": "0.08em", "fontWeight": "600" } ], "body-md": [ "0.875rem", { "lineHeight": "1.4rem", "fontWeight": "400" } ], "metric-lg": [ "1.25rem", { "lineHeight": "1.5rem", "letterSpacing": "-0.01em", "fontWeight": "600" } ], "metric-huge": [ "2.75rem", { "lineHeight": "3rem", "letterSpacing": "-0.03em", "fontWeight": "700" } ], "display-lg": [ "3.5rem", { "lineHeight": "4rem", "letterSpacing": "-0.03em", "fontWeight": "700" } ], "body-lg": [ "1rem", { "lineHeight": "1.6rem", "fontWeight": "400" } ], "display-lg-mobile": [ "2.25rem", { "lineHeight": "2.75rem", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "metric-md": [ "0.875rem", { "lineHeight": "1.25rem", "fontWeight": "500" } ], "body-sm": [ "0.75rem", { "lineHeight": "1.125rem", "fontWeight": "400" } ], "headline-lg": [ "2rem", { "lineHeight": "2.5rem", "letterSpacing": "-0.02em", "fontWeight": "600" } ], "mono-label": [ "0.75rem", { "lineHeight": "1rem", "fontWeight": "400" } ] } } } };</script></head><body class="bg-surface text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col"><header class="fixed top-0 left-0 right-0 z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.35)]"><div class="h-16 w-full px-margin-desktop flex items-center justify-between gap-space-lg"><div class="flex items-center gap-space-md"><img alt="Keeling Observatory Emblem" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaWwLdRStYyBQ1Bt-c9kLpnr_k28K5hZj4OP_GDpzD7icAWiJONGxuHYMEJquVvBbcVnEwT_WuodNXNPc504etH2jV1Ytj_IYTGV3h_Kj4lLkWDXyGqbfaSqy-vkBE8SikFH4kMoVXn8OldcSj0zzRUVYX4Hw5ofsk-sTtjGGciPPwZ2qMcYFlA6JntMi7P-EccJFgnujyJuThima9FINwKL_pCRzR22aHzihPtNI"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">Keeling Curve Explorer</span><span class="font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant leading-none mt-space-2xs">Atmospheric CO₂ Analysis &amp; Forecasting</span></div></div><div class="hidden xl:flex items-center gap-space-xs px-space-sm py-space-2xs rounded bg-surface-container-low"><span class="h-2 w-2 rounded-full bg-secondary animate-pulse"></span><span class="font-mono-label text-mono-label text-on-surface-variant">NOAA Mauna Loa GML Telemetry:</span><span class="font-mono-label text-mono-label text-secondary font-semibold">Live Model Suite</span></div><nav class="hidden lg:flex items-center gap-space-lg" data-active-classes="text-primary font-semibold"><a aria-current="page" class="transition-colors text-primary font-semibold" data-path="overview" href="#overview">Overview</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors" data-path="exploration" href="#exploration">Exploration</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors" data-path="analogy" href="#analogy">Analogy</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors" data-path="models" href="#models">Models</a><a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors" data-path="predictor" href="#predictor">Predictor</a></nav><div class="flex items-center gap-space-md"><div class="hidden sm:flex items-center gap-space-xs px-space-sm py-space-2xs rounded bg-surface-container text-on-surface-variant font-mono-label text-mono-label"><span class="material-symbols-outlined text-[14px]">terminal</span><span>PPM 426.69</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-surface flex-1"><div class="flex flex-col w-full">
+<!-- SECTION 1: SCIENTIFIC EXECUTIVE OVERVIEW & KPI TELEMETRY -->
+<section class="w-full px-margin-desktop py-space-2xl bg-surface-container-lowest relative overflow-hidden" id="overview">
+<!-- Atmospheric Ambient Glow Backdrops -->
+<div class="absolute -top-32 right-12 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute -bottom-24 left-1/4 w-80 h-80 bg-secondary/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="max-w-[1520px] mx-auto flex flex-col gap-space-xl relative z-10">
+<div class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-lg">
+<div class="max-w-4xl flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-sm">
+<span class="px-space-sm py-space-2xs bg-surface-container-high rounded text-primary font-mono-label text-mono-label uppercase tracking-widest flex items-center gap-space-xs">
+<span class="h-1.5 w-1.5 rounded-full bg-primary animate-ping"></span>
+              NOAA GML Baseline Station • MLO 19.5362°N 155.5763°W
+            </span>
+<span class="text-on-surface-variant font-mono-label text-mono-label">Elevation 3,397m MSL</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg lg:text-display-lg text-on-surface tracking-tight">
+            Keeling Curve Explorer: Deconstructing Atmospheric CO₂ Dynamics &amp; Predictive Modeling
+          </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+            Continuous monthly mean carbon dioxide measurements at Mauna Loa Observatory, Hawaii (March 1958 – Present) calibrated against rigorous multi-decadal empirical formulations and projection horizons.
+          </p>
+</div>
+<!-- System State Pill -->
+<div class="flex items-center gap-space-md p-space-md bg-surface-container rounded-xl shadow-md">
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Model Training Horizon</span>
+<span class="font-headline-sm text-headline-sm text-secondary">Mar 1958 – Dec 2015</span>
+</div>
+<div class="w-px h-8 bg-surface-variant"></div>
+<div class="flex flex-col">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Held-Out Validation</span>
+<span class="font-headline-sm text-headline-sm text-primary">Jan 2016 – Sep 2026</span>
+</div>
+</div>
+</div>
+<!-- Telemetry KPI Cluster -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md pt-space-xs">
+<div class="bg-surface-container p-space-lg rounded-xl flex flex-col gap-space-2xs shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between text-on-surface-variant font-label-caps text-label-caps uppercase">
+<span>Atmospheric Baseline Trend</span>
+<span class="material-symbols-outlined text-[16px] text-primary">trending_up</span>
+</div>
+<div class="font-metric-huge text-metric-huge text-on-surface flex items-baseline gap-space-2xs">
+            429.84 <span class="font-headline-sm text-headline-sm text-on-surface-variant">ppm</span>
+</div>
+<span class="font-mono-label text-mono-label text-secondary flex items-center gap-space-2xs">
+<span class="material-symbols-outlined text-[14px]">south_east</span> Deseasonalized central run
+          </span>
+</div>
+<div class="bg-surface-container p-space-lg rounded-xl flex flex-col gap-space-2xs shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between text-on-surface-variant font-label-caps text-label-caps uppercase">
+<span>Annual Growth Acceleration</span>
+<span class="material-symbols-outlined text-[16px] text-secondary">speed</span>
+</div>
+<div class="font-metric-huge text-metric-huge text-secondary flex items-baseline gap-space-2xs">
+            +2.79 <span class="font-headline-sm text-headline-sm text-on-surface-variant">ppm/yr</span>
+</div>
+<span class="font-mono-label text-mono-label text-on-surface-variant">
+            vs. +0.89 ppm/yr in 1960 (+213% climb)
+          </span>
+</div>
+<div class="bg-surface-container p-space-lg rounded-xl flex flex-col gap-space-2xs shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between text-on-surface-variant font-label-caps text-label-caps uppercase">
+<span>Seasonal Oscillation Delta</span>
+<span class="material-symbols-outlined text-[16px] text-tertiary-fixed-dim">waves</span>
+</div>
+<div class="font-metric-huge text-metric-huge text-tertiary-fixed-dim flex items-baseline gap-space-2xs">
+            ~6.3 <span class="font-headline-sm text-headline-sm text-on-surface-variant">ppm</span>
+</div>
+<span class="font-mono-label text-mono-label text-on-surface-variant">
+            May trough-to-peak amplitude shift
+          </span>
+</div>
+<div class="bg-surface-container p-space-lg rounded-xl flex flex-col gap-space-2xs shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between text-on-surface-variant font-label-caps text-label-caps uppercase">
+<span>Exponential Model Held-Out RMSE</span>
+<span class="material-symbols-outlined text-[16px] text-primary">verified</span>
+</div>
+<div class="font-metric-huge text-metric-huge text-primary flex items-baseline gap-space-2xs">
+            0.76 <span class="font-headline-sm text-headline-sm text-on-surface-variant">ppm</span>
+</div>
+<span class="font-mono-label text-mono-label text-secondary flex items-center gap-space-2xs">
+<span class="material-symbols-outlined text-[14px]">check</span> Validated across 129 test months
+          </span>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 2: THE CHILD ON AN ESCALATOR (INTUITION & DECOMPOSITION) -->
+<section class="w-full px-margin-desktop py-space-3xl bg-surface" id="analogy">
+<div class="max-w-[1520px] mx-auto flex flex-col gap-space-2xl">
+<div class="flex flex-col gap-space-2xs max-w-3xl">
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-widest">Phenomenological Foundation</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">The Intuition: "The Child on an Escalator"</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+          Atmospheric carbon dioxide measurements at Mauna Loa exhibit two superimposed physical mechanisms: an accelerating anthropogenic secular trend combined with a harmonic biospheric oscillation.
+        </p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-center">
+<!-- Visual Diagram Container -->
+<div class="lg:col-span-7 bg-surface-container rounded-2xl p-space-xl shadow-xl flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs font-mono-label text-mono-label text-on-surface-variant">
+<span class="h-2 w-2 rounded-full bg-secondary"></span>
+              Conceptual Mechanics Schema
+            </div>
+<span class="font-label-caps text-label-caps px-space-sm py-space-2xs bg-surface-container-high rounded text-on-surface-variant">Figure A.1</span>
+</div>
+<div class="w-full h-80 rounded-xl overflow-hidden bg-surface-container-lowest flex items-center justify-center relative">
+<img class="w-full h-full object-cover" data-alt="A clean, minimalist vector infographic illustrating 'The Child on an Escalator' metaphor for the Keeling Curve against a dark navy observatory background. A child in bright neon coral and cyan leaps atop an ascending slate mechanical ramp. A glowing green harmonic sine curve traces the jump trajectory while a cyan dashed arrow marks the steep incline. Labeled callouts explain fossil fuel climb versus spring-summer vegetative photosynthesis." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtm3peMILFzKmhaxRRas2bYwmK60jZYt1d2Y8oHSHzCl2xJqWgFXbT5IseleH92eET9cp2ZWYlQbVOCp7Nqy42E5aUBqgZE4jj84gEniGC2BRkW6LMy3sPPbL0r9GVAaqS4CFY8hj9x3bGdB2iSN1Onp55aYjK4RzPQDvVkDARw0r37AZPq72ce0ybFltGF-yTnuDUf6BLtUR2SBBRQRSqUqHDBHEiMd98k87O5gI"/>
+</div>
+<!-- Component Breakdown Pills -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col gap-space-2xs">
+<div class="flex items-center gap-space-xs">
+<span class="h-2 w-2 rounded-full bg-primary"></span>
+<span class="font-headline-sm text-headline-sm text-primary">1. The Escalator (Trend)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                Relentless long-term fossil fuel consumption and land use change forces the baseline upward at ~2.8 ppm/year.
+              </p>
+</div>
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col gap-space-2xs">
+<div class="flex items-center gap-space-xs">
+<span class="h-2 w-2 rounded-full bg-secondary"></span>
+<span class="font-headline-sm text-headline-sm text-secondary">2. The Jump (Seasonality)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                Northern Hemisphere forests inhale CO₂ during boreal summer (-3.5 ppm) and exhale during winter decay (+3.5 ppm).
+              </p>
+</div>
+</div>
+</div>
+<!-- Physical Intuition Walkthrough Cards -->
+<div class="lg:col-span-5 flex flex-col gap-space-md">
+<div class="bg-surface-container-high p-space-lg rounded-xl flex flex-col gap-space-sm">
+<div class="flex items-center gap-space-xs text-primary">
+<span class="material-symbols-outlined text-[20px]">north_east</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">The Mathematical Synthesis</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+              When a child jumps repeatedly while riding an upward escalator, their altitude constantly oscillates, but each successive floor bounce lands higher than the last. In atmospheric chemistry:
+            </p>
+<div class="p-space-md bg-surface-container-lowest rounded font-metric-md text-metric-md text-primary-fixed-dim">
+              CO₂(t) = Baseline(t) + Seasonal(t) + ε(t)
+            </div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Where <span class="font-mono-label text-primary">Baseline(t)</span> is an accelerated convex trajectory, and <span class="font-mono-label text-secondary">Seasonal(t)</span> is a 12-month cyclic Fourier series with near-zero zero-sum annual net effect.
+            </p>
+</div>
+<div class="bg-surface-container p-space-lg rounded-xl flex flex-col gap-space-sm">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Key Climatological Takeaways</span>
+<ul class="flex flex-col gap-space-sm font-body-sm text-body-sm text-on-surface">
+<li class="flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[16px] mt-0.5">check_circle</span>
+<span>The annual drop in late summer is <strong>temporary biospheric respiration</strong>, not emission reduction.</span>
+</li>
+<li class="flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[16px] mt-0.5">check_circle</span>
+<span>Linear models completely fail over long time scales because planetary fossil fuel combustion compounding is nonlinear.</span>
+</li>
+<li class="flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[16px] mt-0.5">check_circle</span>
+<span>The seasonal amplitude itself is widening slightly over decades due to Arctic greening and agricultural intensification.</span>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 3: INTERACTIVE HISTORICAL DATA WORKSTATION (CANVAS + PARAMETERS) -->
+<section class="w-full px-margin-desktop py-space-2xl bg-surface-container-lowest" id="exploration">
+<div class="max-w-[1520px] mx-auto flex flex-col gap-space-xl">
+<!-- Section Header with Controls Strip -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div>
+<span class="font-label-caps text-label-caps text-primary uppercase tracking-widest">Observatory Workstation</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Atmospheric Telemetry &amp; Multi-Model Visualizer</h2>
+</div>
+<div class="flex flex-wrap items-center gap-space-xs p-space-2xs bg-surface-container rounded-lg">
+<span class="font-mono-label text-mono-label text-on-surface-variant px-space-xs">VIEW:</span>
+<button class="px-space-sm py-space-2xs rounded bg-surface-container-highest text-on-surface font-mono-label text-mono-label shadow-sm" id="btn-overlay">Overlay</button>
+<button class="px-space-sm py-space-2xs rounded text-on-surface-variant hover:text-on-surface font-mono-label text-mono-label" id="btn-split">Side by Side</button>
+<div class="w-px h-4 bg-surface-variant mx-space-2xs"></div>
+<span class="font-mono-label text-mono-label text-on-surface-variant px-space-xs">SPAN:</span>
+<button class="time-zoom-btn px-space-sm py-space-2xs rounded bg-surface-container-highest text-primary font-mono-label text-mono-label">All</button>
+<button class="time-zoom-btn px-space-sm py-space-2xs rounded text-on-surface-variant hover:text-on-surface font-mono-label text-mono-label">50 yrs</button>
+<button class="time-zoom-btn px-space-sm py-space-2xs rounded text-on-surface-variant hover:text-on-surface font-mono-label text-mono-label">10 yrs</button>
+<button class="time-zoom-btn px-space-sm py-space-2xs rounded text-on-surface-variant hover:text-on-surface font-mono-label text-mono-label">2 yrs</button>
+</div>
+</div>
+<!-- Main Scientific Grid: 4 Col Telemetry / 8 Col Graphic -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- Left Cockpit Card (Telemetry Parameters & Active Probe) -->
+<div class="lg:col-span-4 flex flex-col gap-space-md">
+<!-- Active Probe Card -->
+<div class="bg-surface-container p-space-xl rounded-xl shadow-md flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<span class="font-mono-label text-mono-label text-secondary flex items-center gap-space-2xs" id="selected-model-tag">
+<span class="h-2 w-2 rounded-full bg-secondary"></span> Exponential + seasonal
+              </span>
+<span class="px-space-xs py-space-2xs rounded bg-surface-container-highest font-mono-label text-mono-label text-on-surface-variant" id="active-month-pill">Sep 2026</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-metric-huge text-metric-huge text-on-surface" id="hero-co2-metric">426.69</span>
+<span class="font-headline-sm text-headline-sm text-on-surface-variant">ppm</span>
+</div>
+<div class="flex items-center gap-space-xs mt-space-2xs">
+<span class="px-space-sm py-space-2xs bg-primary/20 text-primary rounded font-label-caps text-label-caps uppercase" id="data-status-badge">Held out</span>
+<span class="font-mono-label text-mono-label text-on-surface-variant">Validation Probe</span>
+</div>
+</div>
+<!-- Empirical Telemetry Matrix -->
+<div class="flex flex-col gap-space-xs pt-space-sm">
+<div class="flex items-center justify-between py-space-2xs">
+<span class="font-body-md text-body-md text-on-surface-variant">Measured Ground Truth</span>
+<span class="font-metric-md text-metric-md text-on-surface">426.07 ppm</span>
+</div>
+<div class="flex items-center justify-between py-space-2xs">
+<span class="font-body-md text-body-md text-on-surface-variant">Model error</span>
+<span class="font-metric-md text-metric-md text-secondary">+0.62 ppm</span>
+</div>
+<div class="flex items-center justify-between py-space-2xs">
+<span class="font-body-md text-body-md text-on-surface-variant">Deseasonalized Trend</span>
+<span class="font-metric-md text-metric-md text-on-surface">429.84 ppm</span>
+</div>
+<div class="flex items-center justify-between py-space-2xs">
+<span class="font-body-md text-body-md text-on-surface-variant">Seasonal part</span>
+<span class="font-metric-md text-metric-md text-tertiary-fixed-dim">-3.15 ppm</span>
+</div>
+<div class="flex items-center justify-between py-space-2xs">
+<span class="font-body-md text-body-md text-on-surface-variant">Instantaneous growth</span>
+<span class="font-metric-md text-metric-md text-on-surface">2.79 ppm/yr</span>
+</div>
+<div class="flex items-center justify-between py-space-2xs">
+<span class="font-body-md text-body-md text-on-surface-variant">Held-out RMSE</span>
+<span class="font-metric-md text-metric-md text-primary">0.76 ppm</span>
+</div>
+</div>
+<div class="p-space-sm bg-surface-container-low rounded text-on-surface-variant font-mono-label text-mono-label">
+              Status: Out-of-sample prediction window. Not used to fit the model parameters.
+            </div>
+</div>
+<!-- All Models Comparison at Probe Timestamp -->
+<div class="bg-surface-container p-space-lg rounded-xl shadow-md flex flex-col gap-space-md">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">All Models, Selected Month</span>
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between text-on-surface-variant font-mono-label text-mono-label pb-space-2xs">
+<span>MODEL</span>
+<div class="flex items-center gap-space-lg">
+<span>PPM</span>
+<span class="w-16 text-right">VS MEASURED</span>
+</div>
+</div>
+<!-- Linear -->
+<div class="flex items-center justify-between py-space-2xs">
+<div class="flex items-center gap-space-xs font-mono-label text-mono-label text-primary">
+<span class="h-1.5 w-3 bg-primary rounded-full"></span> Linear
+                </div>
+<div class="flex items-center gap-space-lg font-metric-md text-metric-md">
+<span class="text-on-surface">411.23</span>
+<span class="w-16 text-right text-error font-semibold">-14.84</span>
+</div>
+</div>
+<!-- Polynomial + Seasonal -->
+<div class="flex items-center justify-between py-space-2xs">
+<div class="flex items-center gap-space-xs font-mono-label text-mono-label text-tertiary-fixed-dim">
+<span class="h-1.5 w-3 bg-tertiary-fixed-dim rounded-full"></span> Polynomial + seas.
+                </div>
+<div class="flex items-center gap-space-lg font-metric-md text-metric-md">
+<span class="text-on-surface">423.86</span>
+<span class="w-16 text-right text-error font-semibold">-2.21</span>
+</div>
+</div>
+<!-- Exponential + Seasonal -->
+<div class="flex items-center justify-between py-space-2xs bg-surface-container-high rounded p-space-xs">
+<div class="flex items-center gap-space-xs font-mono-label text-mono-label text-secondary font-semibold">
+<span class="h-1.5 w-3 bg-secondary rounded-full"></span> Exponential + seas.
+                </div>
+<div class="flex items-center gap-space-lg font-metric-md text-metric-md">
+<span class="text-on-surface font-bold">426.69</span>
+<span class="w-16 text-right text-secondary font-bold">+0.62</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Observatory Chart Canvas & Scrubber Instrument -->
+<div class="lg:col-span-8 bg-surface-container rounded-xl p-space-xl shadow-xl flex flex-col gap-space-lg">
+<!-- Active Legend & Toggles -->
+<div class="flex flex-wrap items-center justify-between gap-space-md">
+<div class="flex flex-wrap items-center gap-space-md">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Toggles:</span>
+<button class="flex items-center gap-space-xs px-space-sm py-space-2xs rounded bg-surface-container-high text-on-surface font-mono-label text-mono-label">
+<span class="h-2 w-2 rounded-full bg-primary"></span> Linear
+              </button>
+<button class="flex items-center gap-space-xs px-space-sm py-space-2xs rounded bg-surface-container-high text-on-surface font-mono-label text-mono-label">
+<span class="h-2 w-2 rounded-full bg-tertiary-fixed-dim"></span> Polynomial + seasonal
+              </button>
+<button class="flex items-center gap-space-xs px-space-sm py-space-2xs rounded bg-secondary/10 text-secondary font-mono-label text-mono-label font-semibold">
+<span class="h-2 w-2 rounded-full bg-secondary"></span> Exponential + seasonal
+              </button>
+</div>
+<div class="flex items-center gap-space-md text-on-surface-variant font-mono-label text-mono-label">
+<span class="flex items-center gap-space-2xs"><span class="w-3 h-0.5 bg-on-surface"></span> Measured</span>
+<span class="flex items-center gap-space-2xs"><span class="w-3 h-0.5 bg-secondary"></span> Model Projection</span>
+</div>
+</div>
+<!-- Chart Graphic Canvas (SVG Precision Instrument) -->
+<div class="relative w-full h-[380px] bg-surface-container-lowest rounded-xl overflow-hidden p-space-md flex flex-col justify-between">
+<!-- Forecast Horizon Scrim -->
+<div class="absolute inset-y-0 right-0 w-[42%] bg-surface-container/30 pointer-events-none"></div>
+<!-- Boundary Demarcation Reticle: Dec 2015 / Sep 2026 -->
+<div class="absolute top-0 bottom-0 left-[62%] w-px bg-outline-variant/60 pointer-events-none"></div>
+<div class="absolute top-0 bottom-0 left-[68%] w-px border-l border-dashed border-primary/60 pointer-events-none"></div>
+<span class="absolute top-4 left-[69%] font-mono-label text-mono-label uppercase text-on-surface-variant tracking-wider pointer-events-none">
+              Forecast Boundary (2016+)
+            </span>
+<!-- Uncertainty Caliper Indicator @ 2035 -->
+<div class="absolute top-[32%] left-[76%] flex flex-col items-center pointer-events-none">
+<div class="w-2.5 h-0.5 bg-secondary"></div>
+<div class="w-0.5 h-16 bg-secondary"></div>
+<div class="w-2.5 h-0.5 bg-secondary"></div>
+<span class="font-mono-label text-[10px] text-secondary mt-1">±4.8 ppm</span>
+</div>
+<!-- Responsive Chart Vector Drawing -->
+<svg class="w-full h-full" fill="none" preserveaspectratio="none" viewbox="0 0 800 320">
+<!-- Grid lines -->
+<line stroke="#1c2025" stroke-width="1" x1="0" x2="800" y1="40" y2="40"></line>
+<line stroke="#1c2025" stroke-width="1" x1="0" x2="800" y1="120" y2="120"></line>
+<line stroke="#1c2025" stroke-width="1" x1="0" x2="800" y1="200" y2="200"></line>
+<line stroke="#1c2025" stroke-width="1" x1="0" x2="800" y1="280" y2="280"></line>
+<line stroke="#1c2025" stroke-width="1" x1="160" x2="160" y1="0" y2="320"></line>
+<line stroke="#1c2025" stroke-width="1" x1="320" x2="320" y1="0" y2="320"></line>
+<line stroke="#1c2025" stroke-width="1" x1="480" x2="480" y1="0" y2="320"></line>
+<line stroke="#1c2025" stroke-width="1" x1="640" x2="640" y1="0" y2="320"></line>
+<!-- Measured Historical Zig-Zag Curve (1958 - 2024) -->
+<path d="M 20 290 
+                       L 35 285 L 42 291 L 55 282 L 62 288 L 80 278 L 92 284 L 110 272 L 125 279 
+                       L 145 264 L 160 271 L 180 256 L 195 262 L 215 248 L 230 254 L 255 238 L 270 244 
+                       L 295 228 L 310 234 L 340 216 L 355 222 L 385 204 L 400 210 L 430 190 L 445 197 
+                       L 475 176 L 490 182 L 520 160 L 535 167 L 544 158" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.85" stroke-width="1.75"></path>
+<!-- Linear Projection Divergence (Underfit Baseline) -->
+<path d="M 20 290 L 544 198 L 780 135" stroke="#47d6ff" stroke-dasharray="4 3" stroke-opacity="0.4" stroke-width="1.5"></path>
+<!-- Polynomial Trend Curve -->
+<path d="M 20 290 Q 350 250 544 168 T 780 62" stroke="#ffb690" stroke-opacity="0.6" stroke-width="1.75"></path>
+<!-- Exponential + Seasonal Trajectory (Best Model - Glowing Neon Green) -->
+<path d="M 20 290 
+                       Q 280 260 544 158 
+                       L 555 164 L 570 148 L 585 154 L 600 137 L 615 143 L 635 124 L 650 131 
+                       L 670 110 L 685 117 L 705 94 L 720 101 L 740 76 L 755 83 L 780 50" stroke="#45f885" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" style="filter: drop-shadow(0 0 5px rgba(69, 248, 133, 0.45));"></path>
+<!-- Active Crosshair Needle @ Sep 2026 -->
+<circle cx="544" cy="158" fill="#ffffff" r="4.5" stroke="#45f885" stroke-width="2"></circle>
+</svg>
+<!-- Chart Coordinates Overlays -->
+<div class="absolute left-2 inset-y-4 flex flex-col justify-between font-mono-label text-[11px] text-on-surface-variant pointer-events-none">
+<span>600 ppm</span>
+<span>500 ppm</span>
+<span>400 ppm</span>
+<span>300 ppm</span>
+</div>
+<!-- Chart Horizontal Axis Labels -->
+<div class="w-full flex justify-between font-mono-label text-[11px] text-on-surface-variant px-space-md pt-space-xs">
+<span>1960</span>
+<span>1980</span>
+<span>2000</span>
+<span>2020</span>
+<span>2040</span>
+<span>2060</span>
+</div>
+</div>
+<!-- Interactive Partitioned Scrubber Rail & Caliper -->
+<div class="flex flex-col gap-space-sm pt-space-xs">
+<div class="flex items-center justify-between font-mono-label text-mono-label">
+<div class="flex items-center gap-space-sm">
+<span class="font-headline-sm text-headline-sm text-on-surface">Sep 2026</span>
+<span class="text-primary font-semibold">Held-out test sample</span>
+</div>
+<div class="flex items-center gap-space-md text-on-surface-variant">
+<span class="flex items-center gap-space-2xs"><span class="h-2 w-2 rounded-full bg-outline-variant"></span> Used to fit (1958-2015)</span>
+<span class="flex items-center gap-space-2xs"><span class="h-2 w-2 rounded-full bg-primary"></span> Held out (2016-2026)</span>
+<span class="flex items-center gap-space-2xs"><span class="h-2 w-2 rounded-full bg-surface-container-highest"></span> Forecast (2027+)</span>
+</div>
+</div>
+<!-- Segmented Rail -->
+<div class="relative w-full h-3 rounded-full bg-surface-container-lowest overflow-hidden flex cursor-pointer">
+<div class="h-full bg-outline-variant/40" style="width: 62%;"></div>
+<div class="h-full bg-primary/80" style="width: 8%;"></div>
+<div class="h-full bg-surface-container-highest" style="width: 30%;"></div>
+<!-- Reticle Scrubber Thumb -->
+<div class="absolute top-1/2 -translate-y-1/2 left-[70%] w-4 h-4 rounded-full bg-on-surface shadow-md border-2 border-primary cursor-grab"></div>
+</div>
+<div class="flex justify-between font-mono-label text-[11px] text-on-surface-variant">
+<span>1958 (Inception)</span>
+<span>2015 (Fit Cutoff)</span>
+<span>Sep 2026 (Active)</span>
+<span>2076 (+50 yr horizon)</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Scrub the timeline rail or step using arrow keys. Gray range was exposed to model training optimization. Blue interval evaluates generalization error on held-out observations. Transparent gray represents unconstrained multi-decadal projections.
+            </p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 4: MATHEMATICAL FORMULATIONS & COMPARATIVE BENCHMARKING -->
+<section class="w-full px-margin-desktop py-space-3xl bg-surface" id="models">
+<div class="max-w-[1520px] mx-auto flex flex-col gap-space-2xl">
+<div class="flex flex-col gap-space-2xs max-w-3xl">
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-widest">Statistical Framework</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Mathematical Formulations &amp; Model Benchmark</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+          Rigorous comparison of mathematical models calibrated strictly against historical training data (1958–2015) and evaluated on subsequent real-world readings.
+        </p>
+</div>
+<!-- 3 Side-by-Side Model Architecture Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+<!-- Model 1: Linear -->
+<div class="bg-surface-container p-space-xl rounded-xl flex flex-col justify-between gap-space-lg shadow-sm hover:shadow-md transition-shadow">
+<div class="flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<span class="px-space-sm py-space-2xs rounded bg-surface-container-high text-primary font-mono-label text-mono-label uppercase">Baseline Model</span>
+<span class="text-error font-mono-label text-mono-label font-bold">-14.84 ppm err</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">1. Linear Fit</h3>
+<div class="p-space-md bg-surface-container-lowest rounded font-metric-md text-metric-md text-primary">
+              y(t) = a + b·t
+            </div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Presumes a constant annual emission accumulation rate over time. Fails to incorporate biospheric seasonal oscillations and severely underpredicts modern CO₂ concentrations due to post-1970 global emission acceleration.
+            </p>
+</div>
+<div class="flex flex-col gap-space-xs pt-space-md">
+<div class="flex justify-between font-mono-label text-mono-label text-on-surface-variant">
+<span>Held-out RMSE:</span>
+<span class="text-error font-semibold">12.41 ppm</span>
+</div>
+<div class="flex justify-between font-mono-label text-mono-label text-on-surface-variant">
+<span>Sep 2026 Calc:</span>
+<span class="text-on-surface">411.23 ppm</span>
+</div>
+<div class="flex justify-between font-mono-label text-mono-label text-on-surface-variant">
+<span>2050 Forecast:</span>
+<span class="text-on-surface">456.12 ppm</span>
+</div>
+</div>
+</div>
+<!-- Model 2: Polynomial + Seasonal -->
+<div class="bg-surface-container p-space-xl rounded-xl flex flex-col justify-between gap-space-lg shadow-sm hover:shadow-md transition-shadow">
+<div class="flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<span class="px-space-sm py-space-2xs rounded bg-surface-container-high text-tertiary-fixed-dim font-mono-label text-mono-label uppercase">Quadratic + Harmonics</span>
+<span class="text-tertiary-fixed-dim font-mono-label text-mono-label font-bold">-2.21 ppm err</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">2. Polynomial + Seasonal</h3>
+<div class="p-space-md bg-surface-container-lowest rounded font-metric-md text-metric-md text-tertiary-fixed-dim">
+              y(t) = a + b·t + c·t² + S(t)
+            </div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Incorporates quadratic term for secular acceleration alongside 12-month harmonic Fourier seasonal cycle S(t). Captures annual plant respiration swings but starts falling slightly behind recent decadal surges.
+            </p>
+</div>
+<div class="flex flex-col gap-space-xs pt-space-md">
+<div class="flex justify-between font-mono-label text-mono-label text-on-surface-variant">
+<span>Held-out RMSE:</span>
+<span class="text-on-surface">1.84 ppm</span>
+</div>
+<div class="flex justify-between font-mono-label text-mono-label text-on-surface-variant">
+<span>Sep 2026 Calc:</span>
+<span class="text-on-surface">423.86 ppm</span>
+</div>
+<div class="flex justify-between font-mono-label text-mono-label text-on-surface-variant">
+<span>2050 Forecast:</span>
+<span class="text-on-surface">482.40 ppm</span>
+</div>
+</div>
+</div>
+<!-- Model 3: Exponential + Seasonal -->
+<div class="bg-surface-container-high p-space-xl rounded-xl flex flex-col justify-between gap-space-lg shadow-lg relative">
+<div class="flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<span class="px-space-sm py-space-2xs rounded bg-secondary/20 text-secondary font-mono-label text-mono-label uppercase font-semibold">Best Calibration</span>
+<span class="text-secondary font-mono-label text-mono-label font-bold">+0.62 ppm err</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">3. Exponential + Seasonal</h3>
+<div class="p-space-md bg-surface-container-lowest rounded font-metric-md text-metric-md text-secondary">
+              y(t) = a · e^(k·t) + S(t)
+            </div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Compounds growth proportionally with cumulative carbon emissions. Reproduces both the empirical curvature and harmonic peak/trough cycle with superior generalization over a 10-year blind held-out evaluation window.
+            </p>
+</div>
+<div class="flex flex-col gap-space-xs pt-space-md">
+<div class="flex justify-between font-mono-label text-mono-label text-on-surface-variant">
+<span>Held-out RMSE:</span>
+<span class="text-secondary font-bold">0.76 ppm</span>
+</div>
+<div class="flex justify-between font-mono-label text-mono-label text-on-surface-variant">
+<span>Sep 2026 Calc:</span>
+<span class="text-on-surface font-bold">426.69 ppm</span>
+</div>
+<div class="flex justify-between font-mono-label text-mono-label text-on-surface-variant">
+<span>2050 Forecast:</span>
+<span class="text-secondary font-bold">498.92 ppm</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Comparative Benchmark Table -->
+<div class="bg-surface-container rounded-xl p-space-xl shadow-md overflow-x-auto">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mb-space-md block">Comprehensive Statistical Performance Matrix</span>
+<table class="w-full text-left font-mono-label text-mono-label">
+<thead>
+<tr class="text-on-surface-variant">
+<th class="py-space-sm px-space-md">Model Name</th>
+<th class="py-space-sm px-space-md">Formula Expression</th>
+<th class="py-space-sm px-space-md text-center">Fit Period (R²)</th>
+<th class="py-space-sm px-space-md text-center">Held-Out RMSE (2016-26)</th>
+<th class="py-space-sm px-space-md text-right">Sep 2026 Est.</th>
+<th class="py-space-sm px-space-md text-right">2050 Projection</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-variant/40">
+<tr>
+<td class="py-space-md px-space-md text-primary font-semibold">Linear</td>
+<td class="py-space-md px-space-md text-on-surface-variant">y(t) = a + b·t</td>
+<td class="py-space-md px-space-md text-center text-on-surface">0.962</td>
+<td class="py-space-md px-space-md text-center text-error">12.41 ppm</td>
+<td class="py-space-md px-space-md text-right text-on-surface">411.23 ppm</td>
+<td class="py-space-md px-space-md text-right text-on-surface">456.12 ppm</td>
+</tr>
+<tr>
+<td class="py-space-md px-space-md text-tertiary-fixed-dim font-semibold">Polynomial + seasonal</td>
+<td class="py-space-md px-space-md text-on-surface-variant">y(t) = a + b·t + c·t² + S(t)</td>
+<td class="py-space-md px-space-md text-center text-on-surface">0.994</td>
+<td class="py-space-md px-space-md text-center text-on-surface">1.84 ppm</td>
+<td class="py-space-md px-space-md text-right text-on-surface">423.86 ppm</td>
+<td class="py-space-md px-space-md text-right text-on-surface">482.40 ppm</td>
+</tr>
+<tr class="bg-surface-container-high/60">
+<td class="py-space-md px-space-md text-secondary font-bold">Exponential + seasonal</td>
+<td class="py-space-md px-space-md text-secondary">y(t) = a·e^(k·t) + S(t)</td>
+<td class="py-space-md px-space-md text-center text-secondary font-bold">0.998</td>
+<td class="py-space-md px-space-md text-center text-secondary font-bold">0.76 ppm</td>
+<td class="py-space-md px-space-md text-right text-secondary font-bold">426.69 ppm</td>
+<td class="py-space-md px-space-md text-right text-secondary font-bold">498.92 ppm</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- SECTION 5: INTERACTIVE CO₂ FUTURE PREDICTOR CONSOLE -->
+<section class="w-full px-margin-desktop py-space-3xl bg-surface-container-lowest" id="predictor">
+<div class="max-w-[1520px] mx-auto flex flex-col gap-space-2xl">
+<!-- Section Header -->
+<div class="flex flex-col gap-space-2xs max-w-2xl">
+<span class="font-label-caps text-label-caps text-secondary uppercase tracking-widest">Future Simulator</span>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Interactive Atmospheric Forecaster</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+          Examine expected atmospheric CO₂ concentrations at arbitrary forward dates based on historical empirical dynamics.
+        </p>
+</div>
+<!-- Top Nav / Seeker Panel (Recreated faithfully from attached UI design) -->
+<div class="bg-surface-container p-space-xl rounded-xl shadow-md flex flex-col gap-space-lg">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-space-lg items-end">
+<!-- Details For Model Segment Toggle -->
+<div class="md:col-span-4 flex flex-col gap-space-xs">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">DETAILS FOR</span>
+<div class="flex items-center gap-space-xs p-space-2xs bg-surface-container-low rounded-lg">
+<button class="model-select-btn px-space-sm py-space-2xs rounded text-on-surface-variant hover:text-on-surface font-mono-label text-mono-label flex items-center gap-space-2xs">
+<span class="w-2.5 h-0.5 bg-primary"></span> Linear
+              </button>
+<button class="model-select-btn px-space-sm py-space-2xs rounded text-on-surface-variant hover:text-on-surface font-mono-label text-mono-label flex items-center gap-space-2xs">
+<span class="w-2.5 h-0.5 bg-tertiary-fixed-dim"></span> Polynomial + seasonal
+              </button>
+<button class="model-select-btn px-space-sm py-space-2xs rounded bg-surface-container-highest text-secondary font-semibold font-mono-label text-mono-label flex items-center gap-space-2xs">
+<span class="w-2.5 h-0.5 bg-secondary"></span> Exponential + seasonal
+              </button>
+</div>
+</div>
+<!-- Stepped Month Picker Input -->
+<div class="md:col-span-4 flex flex-col gap-space-xs">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">MONTH</span>
+<div class="flex items-center gap-space-xs">
+<button class="p-space-xs bg-surface-container-low hover:bg-surface-container-high rounded text-on-surface-variant hover:text-on-surface transition-colors" id="month-prev">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<div class="flex-1 py-space-2xs px-space-md bg-surface-container-low rounded flex items-center justify-between text-on-surface font-mono-label text-mono-label">
+<span id="current-month-label">September 2026</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">calendar_month</span>
+</div>
+<button class="p-space-xs bg-surface-container-low hover:bg-surface-container-high rounded text-on-surface-variant hover:text-on-surface transition-colors" id="month-next">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Search By Name Input -->
+<div class="md:col-span-4 flex flex-col gap-space-xs">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-wider">SEARCH BY NAME</span>
+<div class="relative">
+<input class="w-full py-space-2xs pl-space-md pr-space-xl bg-surface-container-low rounded text-on-surface font-mono-label text-mono-label focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-on-surface-variant/50" id="custom-search" placeholder="e.g. March 2040" type="text"/>
+<span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[16px] text-on-surface-variant">search</span>
+</div>
+</div>
+</div>
+<!-- Jump To Fast Leaps Strip -->
+<div class="flex flex-wrap items-center gap-space-xs pt-space-xs">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase mr-space-xs">JUMP TO:</span>
+<button class="jump-btn px-space-md py-space-2xs bg-surface-container-low hover:bg-surface-container-highest rounded text-on-surface font-mono-label text-mono-label">Latest</button>
+<button class="jump-btn px-space-md py-space-2xs bg-surface-container-low hover:bg-surface-container-highest rounded text-on-surface font-mono-label text-mono-label">2035</button>
+<button class="jump-btn px-space-md py-space-2xs bg-surface-container-low hover:bg-surface-container-highest rounded text-on-surface font-mono-label text-mono-label">+10 yrs</button>
+<button class="jump-btn px-space-md py-space-2xs bg-surface-container-low hover:bg-surface-container-highest rounded text-on-surface font-mono-label text-mono-label">+25 yrs</button>
+<button class="jump-btn px-space-md py-space-2xs bg-surface-container-low hover:bg-surface-container-highest rounded text-on-surface font-mono-label text-mono-label">+50 yrs</button>
+</div>
+</div>
+<!-- Projection Realism Banner -->
+<div class="p-space-lg bg-surface-container rounded-xl flex items-start gap-space-md shadow-sm">
+<span class="material-symbols-outlined text-primary text-[24px]">info</span>
+<div class="flex flex-col gap-space-2xs">
+<span class="font-headline-sm text-headline-sm text-on-surface">Scientific Assumption Notice</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            Forecasts assume historical anthropogenic and biospheric dynamics continue without drastic systemic shifts. No statistical curve fit alone can predict technological emissions breakthroughs or geopolitical policy disruptions; consequently, prediction bounds diverge significantly past mid-century. Source: NOAA Global Monitoring Laboratory monthly mean CO₂ at Mauna Loa.
+          </p>
+</div>
+</div>
+</div>
+</section>
+</div>
+<script>
+  // Interactive micro-behaviors for date jumps and interactive UI preview states
+  const jumpButtons = document.querySelectorAll('.jump-btn');
+  const monthLabel = document.getElementById('current-month-label');
+  const activeMonthPill = document.getElementById('active-month-pill');
+  const heroCo2 = document.getElementById('hero-co2-metric');
+  const customSearch = document.getElementById('custom-search');
+
+  jumpButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const txt = e.target.innerText;
+      if (txt === 'Latest') {
+        updateDate('Sep 2026', '426.69');
+      } else if (txt === '2035') {
+        updateDate('May 2035', '452.18');
+      } else if (txt === '+10 yrs') {
+        updateDate('Sep 2036', '454.80');
+      } else if (txt === '+25 yrs') {
+        updateDate('Sep 2051', '501.34');
+      } else if (txt === '+50 yrs') {
+        updateDate('Sep 2076', '588.62');
+      }
+    });
+  });
+
+  if (customSearch) {
+    customSearch.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && e.target.value.trim() !== '') {
+        updateDate(e.target.value.trim(), '464.20');
+      }
+    });
+  }
+
+  function updateDate(dateStr, ppmStr) {
+    if (monthLabel) monthLabel.innerText = dateStr;
+    if (activeMonthPill) activeMonthPill.innerText = dateStr;
+    if (heroCo2) heroCo2.innerText = ppmStr;
+  }
+</script></main><footer class="w-full bg-surface-container-lowest py-space-2xl"><div class="w-full px-margin-desktop flex flex-col md:flex-row items-center justify-between gap-space-lg"><div class="flex items-center gap-space-md"><img alt="Keeling Observatory Emblem" class="h-6 w-auto object-contain opacity-70" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCaWwLdRStYyBQ1Bt-c9kLpnr_k28K5hZj4OP_GDpzD7icAWiJONGxuHYMEJquVvBbcVnEwT_WuodNXNPc504etH2jV1Ytj_IYTGV3h_Kj4lLkWDXyGqbfaSqy-vkBE8SikFH4kMoVXn8OldcSj0zzRUVYX4Hw5ofsk-sTtjGGciPPwZ2qMcYFlA6JntMi7P-EccJFgnujyJuThima9FINwKL_pCRzR22aHzihPtNI"/><div class="flex flex-col"><span class="font-mono-label text-mono-label text-on-surface">Atmospheric CO₂ Precision Project</span><span class="font-body-sm text-body-sm text-on-surface-variant">Mauna Loa Baseline Observatory Data Science Workstation</span></div></div><div class="flex items-center gap-space-xl text-on-surface-variant font-mono-label text-mono-label"><span class="flex items-center gap-space-2xs"><span class="material-symbols-outlined text-[14px] text-secondary">check_circle</span> NOAA GML Ingest Active</span><span class="flex items-center gap-space-2xs"><span class="material-symbols-outlined text-[14px] text-primary">database</span> Scripps Inst. Baseline</span><span>© 2025 Keeling Explorer</span></div></div></footer></body></html>

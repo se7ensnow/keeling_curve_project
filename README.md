@@ -15,6 +15,7 @@ src/keeling/         Python package
   models/            one fit/predict class per rung (1-4)
   evaluate.py        rung 3 selection, held-out errors, comparison table, rung 5 limits, backtests
   plots.py           figures
+  tool.py            the brief's tool: decomposition, growth rate, forecast with error bar
 scripts/             one script per result
 tests/               pytest tests (incl. synthetic data)
 results/figures/     plots
@@ -44,7 +45,9 @@ All commands run from the repo root. Figures go to `results/figures/`, tables to
 | Rung 4: exponential trend, rate r searched non-linearly | `python scripts/run_results.py rung4` |
 | Rung 5: held-out table, errors by year, Maunakea months, 1 ppm horizon | `python scripts/run_results.py compare` |
 | Rung 5: 20-year backtests and the 2035 forecast with an error bar | `python scripts/run_results.py forecast` |
+| Rung 5: the failure case, models fitted on 1958-1985 only, and the exponential's r against history | `python scripts/run_results.py failure` |
 | All of the above | `python scripts/run_results.py all` |
+| The tool: trend/seasonal decomposition, growth rate now, forecast with error bar (`--model`, `--target-year`, `--data`) | `python scripts/run_tool.py` |
 | Tests | `pytest` |
 | Fit linear, polynomial + seasonal and exponential + seasonal on 1958-2015; write `results/params/*.json` and `frontend/data.js` | `python scripts/export_frontend.py` |
 | Interactive explorer: pick a month and a model, see measured vs predicted CO2 and forecasts up to 50 years ahead | `python -m http.server 8000 --directory frontend`, then open http://localhost:8000 |

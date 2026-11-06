@@ -6,11 +6,13 @@ import numpy as np
 import pytest
 
 from keeling.models import (
+    DecadeLinearModel,
     ExponentialSeasonalModel,
     LinearModel,
     PolynomialSeasonalModel,
     fit_by_decade,
 )
+from keeling.models.rung2_decade import decade_of
 
 T = np.arange(0, 58, 1 / 12)  # monthly times, years since 1958-03
 
@@ -96,6 +98,40 @@ def test_fit_by_decade_finds_each_slope():
     table = fit_by_decade(df)
     assert table.loc[table["decade"] == 1960, "slope_ppm_per_year"].iloc[0] == pytest.approx(1.0, abs=1e-6)
     assert table.loc[table["decade"] == 1990, "slope_ppm_per_year"].iloc[0] == pytest.approx(2.0, abs=1e-6)
+
+
+def test_decade_of_matches_the_calendar():
+    # t = (year - 1958) + (month - 3) / 12
+    assert decade_of(0.0) == 1950           # Mar 1958
+    assert decade_of(1.75) == 1950          # Dec 1959
+    assert decade_of(22 / 12) == 1960       # Jan 1960
+    assert decade_of(41.75) == 1990         # Dec 1999
+    assert decade_of(41 + 10 / 12) == 2000  # Jan 2000
+    assert list(decade_of([0.0, 22 / 12])) == [1950, 1960]
+
+
+def test_decade_model_recovers_each_slope_and_predicts_with_its_own_line():
+    t = np.arange(0, 60, 1 / 12)
+    decade = decade_of(t)
+    slope = {1960: 0.8, 1970: 1.2, 1980: 1.5, 1990: 1.6, 2000: 2.0, 2010: 2.1}
+    y = np.array([310 + slope.get(d, 0.0) * ti for d, ti in zip(decade, t)])
+    model = DecadeLinearModel().fit(t, y)
+    for d, s in slope.items():
+        assert model.lines_[d].slope_ == pytest.approx(s, abs=1e-8)
+    assert model.predict(t[decade >= 1960]) == pytest.approx(y[decade >= 1960])
+    assert model.n_params == 2 * len(model.lines_)
+
+
+def test_decade_model_skips_short_decades_and_borrows_the_nearest_line():
+    t = np.arange(0, 60, 1 / 12)
+    model = DecadeLinearModel(min_months=60).fit(t, 310 + 1.5 * t)
+    assert 1950 not in model.lines_            # only 22 months
+    assert model.months_[1960] == 120
+    # a month in the skipped decade uses the nearest fitted decade (1960), and so does the future
+    early, late = np.array([0.5]), np.array([200.0])
+    assert model.predict(early) == pytest.approx(model.lines_[1960].predict(early))
+    assert model.predict(late) == pytest.approx(model.lines_[max(model.lines_)].predict(late))
+    assert model.growth_rate(late) == pytest.approx([1.5])
 
 
 def test_parameters_are_saved_as_json(tmp_path):
