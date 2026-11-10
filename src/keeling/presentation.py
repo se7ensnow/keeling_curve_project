@@ -12,7 +12,8 @@ from .models.rung2_decade import decade_of
 from .split import train_test_split
 
 POLY_DEGREES = (1, 2, 3, 4)       # the degree buttons on the polynomial slide
-HARMONIC_COUNTS = (1, 2, 3, 4)    # the harmonic buttons, and the columns of the validation heatmap
+HARMONIC_COUNTS = (1, 2, 3, 4)    # the harmonic buttons
+HEATMAP_HARMONICS = tuple(range(1, 9))  # the columns of the validation heatmap
 HARMONIC_TREND_DEGREE = 2         # the harmonic slide keeps the same quadratic trend throughout
 RATE_SCAN = np.linspace(0.005, 0.1, 191)  # where the objective is plotted; the optimiser is not a grid
 
@@ -93,16 +94,16 @@ def build(co2):
         }
 
     # Model selection: fitted before 2011, scored on 2011-2015; the heatmap shows 1-4 harmonics
-    shown = selection[selection["harmonics"].isin(HARMONIC_COUNTS)]
+    shown = selection[selection["harmonics"].isin(HEATMAP_HARMONICS)]
     degrees = sorted(int(d) for d in shown["degree"].unique())
 
     def grid(column, cast=float):
         pivot = shown.pivot(index="degree", columns="harmonics", values=column)
-        return [[cast(pivot.loc[d, h]) for h in HARMONIC_COUNTS] for d in degrees]
+        return [[cast(pivot.loc[d, h]) for h in HEATMAP_HARMONICS] for d in degrees]
 
     best = selection.iloc[0]
     selection_out = {
-        "degrees": degrees, "harmonics": list(HARMONIC_COUNTS),
+        "degrees": degrees, "harmonics": list(HEATMAP_HARMONICS),
         "val_rmse": grid("val_rmse"), "fit_rmse": grid("train_rmse"), "parameters": grid("parameters", int),
         "best": {"degree": int(best["degree"]), "harmonics": int(best["harmonics"]),
                  "val_rmse": float(best["val_rmse"])},
