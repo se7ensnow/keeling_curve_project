@@ -1152,7 +1152,8 @@
     $("r-details").innerHTML = rows.map(([k, v, c]) => `<dt>${k}</dt><dd${c ? ` class="${c}"` : ""}>${v}</dd>`).join("") +
       `<dd class="region">${r.text}</dd>`;
 
-    $("th-diff").textContent = obs == null ? "vs selected" : "vs measured";
+    // forecast months: compare with the model chosen under "Details for", and say which one it is
+    $("th-diff").textContent = obs == null ? `vs ${D.models[state.model].label.split(" ")[0].toLowerCase()}` : "vs measured";
     $("r-table").innerHTML = modelKeys.map((k) => {
       const p = D.models[k].pred[i];
       const ref = obs == null ? pred : obs;
