@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Keeling Curve Explorer</title>
+<script>if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("embed");</script>
+<style>
+  /* ?embed: only the interactive forecaster, for the last slide of presentation.html */
+  html.embed .topbar, html.embed .foot, html.embed main > section:not(#explorer) { display: none !important; }
+  html.embed #explorer { padding: 12px 0; background: var(--surface-0); }
+  html.embed #explorer .sec-head, html.embed #explorer .notice { display: none; }
+</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500..700&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..700&display=swap">
