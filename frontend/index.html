@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Keeling Curve Explorer</title>
 <script>if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("embed");</script>
+<script>
+  // in the presentation (?embed) the explorer's title, help text and notice are taken out of the page entirely
+  if (document.documentElement.classList.contains("embed"))
+    addEventListener("DOMContentLoaded", () => document.querySelectorAll("#explorer .sec-head, #explorer .hint, #explorer .notice").forEach((el) => el.remove()));
+</script>
 <style>
   /* ?embed: only the interactive forecaster, for the last slide of presentation.html */
   html.embed .topbar, html.embed .foot, html.embed main > section:not(#explorer) { display: none !important; }
