@@ -386,7 +386,7 @@
   .results td:first-child small { display: block; margin-left: 1.2rem; font: 400 0.75rem/1.3 var(--font-mono); color: var(--text-muted); }
   .results td.low { font-weight: 700; color: var(--secondary); }
   .table-card { width: min(100%, 62rem); padding: 1rem 1.25rem; }
-  .live { flex: 1; width: 100%; min-height: calc(100vh - 8rem); border: 0; border-radius: 8px; background: var(--surface-0); }
+  .live { flex: none; width: 100%; min-height: calc(100vh - 8rem); border: 0; border-radius: 8px; background: var(--surface-0); }
   .demo { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; padding: 3rem 2rem; text-align: center; width: min(100%, 46rem); }
   .demo p { margin: 0; font: 400 1.05rem/1.5 var(--font-sans); color: var(--text-secondary); }
   .cta { padding: 0.9rem 1.6rem; border-radius: 6px; font-size: 1.1rem; }
@@ -925,7 +925,7 @@
       <span class="eyebrow"><b>17</b>Evaluation</span>
       <h2 class="slide-title" id="demo-h">Live Demonstration</h2>
     </header>
-    <iframe class="live" src="index.html?embed#explorer" title="Interactive atmospheric forecaster"></iframe>
+    <iframe class="live" id="live" src="index.html?embed#explorer" title="Interactive atmospheric forecaster" scrolling="no"></iframe>
   </section>
 </main>
 
@@ -1628,6 +1628,16 @@
     `<thead><tr><th scope="col">Model</th>${columns.map(([, name]) => `<th scope="col">${name}</th>`).join("")}</tr></thead><tbody>` +
     P.metrics.map((m) => `<tr><td><span class="sw" style="--c:var(--m-${m.key})"></span>${rowName[m.key][0]}<small>${rowName[m.key][1]}</small></td>` +
       columns.map(([key]) => `<td${m[key] === lowest[key] ? ' class="low"' : ""}>${f3(m[key])}</td>`).join("") + "</tr>").join("") + "</tbody>";
+
+  // ---------- 17 the embedded forecaster grows to its full height, so the page scrolls instead of the frame ----------
+  const live = $("live");
+  live.addEventListener("load", () => {
+    try {
+      const doc = live.contentDocument, fit = () => { live.style.height = `${doc.getElementById("explorer").scrollHeight}px`; };
+      fit();
+      new ResizeObserver(fit).observe(doc.getElementById("explorer"));
+    } catch (e) { live.removeAttribute("scrolling"); /* opened from disk: the frame keeps its own scrollbar */ }
+  });
 
   // ---------- the menu: sections, current section, keys, notes, theme ----------
   const slides = [...document.querySelectorAll(".slide")], nav = $("rail-nav");

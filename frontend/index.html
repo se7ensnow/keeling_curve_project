@@ -9,7 +9,8 @@
   /* ?embed: only the interactive forecaster, for the last slide of presentation.html */
   html.embed .topbar, html.embed .foot, html.embed main > section:not(#explorer) { display: none !important; }
   html.embed #explorer { padding: 12px 0; background: var(--surface-0); }
-  html.embed #explorer .sec-head, html.embed #explorer .notice { display: none; }
+  html.embed #explorer .sec-head, html.embed #explorer .notice, html.embed #explorer .hint { display: none; }
+  html.embed, html.embed body { overflow: hidden; }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
