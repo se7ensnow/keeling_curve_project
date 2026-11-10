@@ -62,3 +62,13 @@ Numbers come from `python scripts/run_results.py all` (tables in `results/tables
 - **Decision:** `run_tool.py` reports the model's trend growth at the latest month (2.79 ppm/yr) and the measured change over the last 12 months (+1.70 ppm), side by side.
 - **Alternatives:** Report only the model's trend growth; report only the measured 12-month change.
 - **Evidence:** They differ by 1.1 ppm/yr. The 12-month change matches the brief's own figure (426.07 - 424.37 = 1.70 ppm) and carries year-to-year variability; the model trend is smooth. One number alone would hide that.
+
+## 2026-11-10 - Presentation page shows the fitted numbers in the form used on the slides
+- **Decision:** `frontend/presentation.html` gets every number from `scripts/export_presentation.py`. Polynomial coefficients are shown per year (the slide formula is a sum of beta_k t^k), although `PolynomialModel` fits in decades (x = t/10). The exponential trend is shown as c0 + a exp(r t), although the class fits c0 + a (exp(r t) - 1).
+- **Alternatives:** Show the coefficients exactly as stored by the classes; type the numbers into the page by hand.
+- **Evidence:** Both rewrites describe the same curves, and `tests/test_presentation.py` checks that. Per year, degree 1 reproduces the rung 1 line (307.51 ppm + 1.514 ppm/yr), so the two slides agree. In the browser, the curves drawn from the exported coefficients match the Python predictions to the 0.01 ppm rounding of `data.js` for all 1423 months.
+
+## 2026-11-10 - Residual slide zooms into 1983-1987
+- **Decision:** The "zoom into several years" button on the residual slide shows January 1983 to December 1987, with the vertical axis unchanged.
+- **Alternatives:** 2010-2015, as in the notebook; any other five years.
+- **Evidence:** Of all five-year stretches of the training period, this is where the yearly mean of the straight line's residual changes least: it stays within 0.29 ppm (slope 0.01 ppm per year). So the slow curvature is flat here and only the yearly wave is left. In 2010-2014 the yearly mean climbs by 0.72 ppm per year, and the wave rides on that slope.
