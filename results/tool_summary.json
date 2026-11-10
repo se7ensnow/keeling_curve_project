@@ -1,0 +1,20 @@
+{
+  "model": "Exponential + seasonal",
+  "fitted_on": "1958-03 to 2015-12",
+  "latest_month": "2026-09",
+  "latest_measured_ppm": 426.07,
+  "model_trend_ppm": 429.8383259618071,
+  "model_seasonal_ppm": -3.145019194832855,
+  "seasonal_peak_to_trough_ppm": 6.233364660805876,
+  "seasonal_cycle_year": 2025,
+  "growth_rate_now_ppm_per_year": 2.787207174951773,
+  "measured_change_last_12_months_ppm": 1.6999999999999886,
+  "forecast": {
+    "year": 2035,
+    "mean_ppm": 456.14055943054746,
+    "error_bar_ppm": 21.50238587751511,
+    "low_ppm": 434.63817355303235,
+    "high_ppm": 477.64294530806256,
+    "error_bar_is": "90th percentile of the absolute error of annual-mean forecasts made 20 years ahead (models refitted with data to 1985 ... 1995, scored 2005 ... 2015)"
+  }
+}

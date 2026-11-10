@@ -1,0 +1,16 @@
+{
+  "checkpoint": "google/timesfm-3.0-pytorch",
+  "device": "cpu",
+  "context": "1958-03 to 2015-12",
+  "context_months": 694,
+  "horizon_months": 240,
+  "forecast": "2016-01 to 2035-12",
+  "fitted_on_the_data": false,
+  "seconds_to_load": 109.8,
+  "seconds_to_forecast": 0.7,
+  "versions": {
+    "timesfm": "3.0.2",
+    "torch": "2.15.0",
+    "numpy": "2.5.4"
+  }
+}

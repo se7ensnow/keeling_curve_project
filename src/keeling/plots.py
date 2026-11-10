@@ -133,6 +133,33 @@ def forecast(co2, train, models, summary, year=2035):
     return _save(fig, "rung5_forecast.png")
 
 
+def failure_case(train, fitted, table, rates, cutoff=1985, target_year=2005):
+    """Rung 5: what each model forecasts from 1958-`cutoff` alone, and how r moves with the data seen."""
+    fig, (left, right) = plt.subplots(1, 2, figsize=(13, 5), gridspec_kw={"width_ratios": [1.7, 1]})
+
+    left.plot(train["date"], train["average"], color=COLORS["Observed"], lw=1.4, label="Measured")
+    after = train[train["year"] > cutoff]
+    gaps = table.set_index("Model")["Model minus measured (ppm)"]
+    for name, model in fitted.items():
+        left.plot(after["date"], model.predict(after["t"]), color=COLORS[name], lw=1.8,
+                  label=f"{name}: {gaps[name]:+.1f} ppm in {target_year}")
+    left.axvline(pd.Timestamp(f"{cutoff}-12-31"), color="gray", ls="--")
+    left.axvspan(pd.Timestamp(f"{target_year}-01-01"), pd.Timestamp(f"{target_year}-12-31"), color="gray", alpha=0.25)
+    left.set(xlabel="Year", ylabel="CO2 (ppm)",
+             title=f"Fitted on 1958-{cutoff} only (dashed line); shaded year = {target_year}")
+    left.legend(loc="upper left")
+
+    exp = COLORS["Exponential + seasonal"]
+    right.plot(rates["Train until"], rates["Rate r (1/yr)"], marker="o", color=exp, lw=2)
+    final = rates["Rate r (1/yr)"].iloc[-1]
+    right.axhline(final, color="gray", ls="--")
+    right.annotate(f"r = {final:.4f} with all of 1958-{int(rates['Train until'].iloc[-1])}",
+                   xy=(rates["Train until"].iloc[0], final), xytext=(0, 6), textcoords="offset points", fontsize=9)
+    right.set(xlabel="Last year of data the model saw", ylabel="Fitted rate r (1/yr)",
+              title="Fitted r against history seen")
+    return _save(fig, "rung5_failure_case.png")
+
+
 def horizon(yearly):
     """Rung 5: held-out RMSE for each year, against the 1 ppm line."""
     fig, ax = plt.subplots(figsize=(9, 4.5))

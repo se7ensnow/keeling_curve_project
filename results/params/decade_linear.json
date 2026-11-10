@@ -1,0 +1,37 @@
+{
+  "model": "decade_linear",
+  "min_months": 60,
+  "time_unit": "t = years since 1958-03",
+  "decades": {
+    "1960": {
+      "months": 120,
+      "slope_ppm_per_year": 0.7669882630738235,
+      "intercept_ppm": 315.07803804662365
+    },
+    "1970": {
+      "months": 120,
+      "slope_ppm_per_year": 1.1922473782901586,
+      "intercept_ppm": 310.8382627728778
+    },
+    "1980": {
+      "months": 120,
+      "slope_ppm_per_year": 1.5599145774012018,
+      "intercept_ppm": 303.8618719471262
+    },
+    "1990": {
+      "months": 120,
+      "slope_ppm_per_year": 1.5259863879436022,
+      "intercept_ppm": 304.4408341435751
+    },
+    "2000": {
+      "months": 120,
+      "slope_ppm_per_year": 1.9897631779984697,
+      "intercept_ppm": 285.66916462948853
+    },
+    "2010": {
+      "months": 72,
+      "slope_ppm_per_year": 2.0965251784680774,
+      "intercept_ppm": 280.5563634853254
+    }
+  }
+}

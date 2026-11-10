@@ -5,6 +5,7 @@
     python scripts/run_results.py rung3      choose degree and harmonics on validation data
     python scripts/run_results.py rung4      exponential trend, search over r
     python scripts/run_results.py compare    held-out table, errors by year, Maunakea months, 1 ppm horizon
+    python scripts/run_results.py failure    the failure case: models fitted on 1958-1985 only, and r against history
     python scripts/run_results.py forecast   backtests and the 2035 forecast with an error bar
     python scripts/run_results.py all        everything above
 
@@ -23,7 +24,7 @@ sys.path.insert(0, str(ROOT / "src"))  # so the script also runs without `pip in
 
 from keeling import evaluate, plots  # noqa: E402
 from keeling.data import load_co2_data  # noqa: E402
-from keeling.models import LinearModel, fit_by_decade  # noqa: E402
+from keeling.models import DecadeLinearModel, LinearModel  # noqa: E402
 from keeling.split import train_test_split  # noqa: E402
 
 TABLES = ROOT / "results" / "tables"
@@ -48,7 +49,9 @@ def rung1(co2, train, test, models, selection):
 
 
 def rung2(co2, train, test, models, selection):
-    table = fit_by_decade(train)
+    model = DecadeLinearModel().fit(train["t"], train["average"])
+    model.save_json(PARAMS / "decade_linear.json")
+    table = model.table()
     save_table(table, "rung2_decades.csv")
     plots.decades(train, table)
 
@@ -86,6 +89,18 @@ def compare(co2, train, test, models, selection):
     plots.horizon(yearly)
 
 
+def failure(co2, train, test, models, selection):
+    """The honest failure case: the exponential, fitted on 1958-1985, overshoots 2005 by about 21 ppm."""
+    best = selection.iloc[0]
+    harmonics = int(best["harmonics"])
+    factories = evaluate.model_factories(int(best["degree"]), harmonics)
+    fitted, table = evaluate.failure_case(train, factories, cutoff=1985)
+    rates = evaluate.rate_by_cutoff(train, harmonics)
+    save_table(table, "rung5_failure_case.csv")
+    save_table(rates, "rung5_rate_by_cutoff.csv")
+    plots.failure_case(train, fitted, table, rates, cutoff=1985, target_year=2005)
+
+
 def forecast(co2, train, test, models, selection):
     best = selection.iloc[0]
     factories = evaluate.model_factories(int(best["degree"]), int(best["harmonics"]))
@@ -97,7 +112,7 @@ def forecast(co2, train, test, models, selection):
 
 
 COMMANDS = {"rung1": rung1, "rung2": rung2, "rung3": rung3, "rung4": rung4,
-            "compare": compare, "forecast": forecast}
+            "compare": compare, "failure": failure, "forecast": forecast}
 
 
 def main():

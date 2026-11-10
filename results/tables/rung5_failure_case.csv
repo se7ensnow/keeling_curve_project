@@ -1,0 +1,4 @@
+Model,Train until,Target year,Measured mean (ppm),Model mean (ppm),Model minus measured (ppm)
+Linear,1985,2005,379.9833,366.8579,-13.1254
+Polynomial + seasonal,1985,2005,379.9833,389.7155,9.7322
+Exponential + seasonal,1985,2005,379.9833,401.4857,21.5024

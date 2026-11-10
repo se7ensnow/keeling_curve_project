@@ -4,301 +4,895 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Keeling Curve Explorer</title>
+<script>if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("embed");</script>
+<script>
+  // in the presentation (?embed) the explorer's title, help text and notice are taken out of the page entirely
+  if (document.documentElement.classList.contains("embed"))
+    addEventListener("DOMContentLoaded", () => document.querySelectorAll("#explorer .sec-head, #explorer .hint, #explorer .notice").forEach((el) => el.remove()));
+</script>
 <style>
+  /* ?embed: only the interactive forecaster, for the last slide of presentation.html */
+  html.embed .topbar, html.embed .foot, html.embed main > section:not(#explorer) { display: none !important; }
+  html.embed #explorer { padding: 12px 0; background: var(--surface-0); }
+  html.embed #explorer .sec-head, html.embed #explorer .notice, html.embed #explorer .hint { display: none; }
+  html.embed, html.embed body { overflow: hidden; }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500..700&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..700&display=swap">
+<style>
+  /* Visual design: Stitch "Keeling Curve Explorer - Project Presentation" (see frontend/design/).
+     Surfaces follow Stitch's tonal ladder (page < card < inset) with no card borders; the Stitch design is
+     dark-only, so the light theme is the same ladder mirrored. All colours are tokens, so the SVG charts,
+     which draw with var(--m-*) / var(--observed), re-theme by themselves.
+     Model colours (violet / amber / bluish-green) are chosen to stay apart for colour-blind viewers and to
+     keep >= 5:1 contrast on every surface they sit on. Lines are flat and solid: no glow. */
   :root {
     color-scheme: light;
-    --surface-0: #f4f3f0;
-    --surface-1: #fcfcfb;
-    --border: #e2e0da;
-    --grid: #ebe9e4;
-    --text-primary: #0b0b0b;
-    --text-secondary: #52514e;
-    --text-muted: #7a7974;
-    --observed: #0b0b0b;
-    --band-heldout: rgba(42, 120, 214, 0.07);
-    --band-forecast: rgba(122, 121, 116, 0.10);
-    --m-linear: #2a78d6;
-    --m-polynomial_seasonal: #eb6834;
-    --m-exponential_seasonal: #1baf7a;
+    --font-display: Geist, Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --gutter: 48px;
+    --surface-0: #eef2f6;      /* page */
+    --surface-1: #ffffff;      /* card */
+    --surface-low: #edf1f5;    /* inputs, inset strips */
+    --surface-high: #e4eaf0;   /* chips, dropdown, active row */
+    --seg-on: #ffffff;         /* selected segment */
+    --canvas: #f4f7fa;         /* recessed: chart canvas, alternate bands */
+    --border: #c3ccd3;
+    --card-edge: #dde3e9;
+    --grid: #e3e8ed;
+    --text-primary: #171c20;
+    --text-secondary: #3c494e;
+    --text-muted: #5b686e;
+    --observed: #171c20;
+    --accent: #00677f;
+    --focus: #00677f;
+    --secondary: #006d5f;
+    --c-seasonal: #b0184f;
+    --band-heldout: rgba(0, 103, 127, 0.07);
+    --band-forecast: rgba(91, 104, 110, 0.09);
+    --m-linear: #7b1fa2;
+    --m-polynomial_seasonal: #a93e05;
+    --m-exponential_seasonal: #006d5f;
+    --shadow-card: 0 1px 2px rgba(23, 28, 32, 0.06), 0 4px 12px rgba(23, 28, 32, 0.06);
+    --shadow-pop: 0 8px 24px rgba(23, 28, 32, 0.18);
+    --shadow-bar: 0 1px 6px rgba(23, 28, 32, 0.10);
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       color-scheme: dark;
-      --surface-0: #111110;
-      --surface-1: #1a1a19;
-      --border: #2e2d2b;
-      --grid: #262624;
-      --text-primary: #f0efec;
-      --text-secondary: #c3c2b7;
-      --text-muted: #8f8e88;
-      --observed: #f0efec;
-      --band-heldout: rgba(57, 135, 229, 0.10);
-      --band-forecast: rgba(195, 194, 183, 0.08);
-      --m-linear: #3987e5;
-      --m-polynomial_seasonal: #d95926;
-      --m-exponential_seasonal: #199e70;
+      --surface-0: #101419;
+      --surface-1: #1c2025;
+      --surface-low: #181c21;
+      --surface-high: #262a30;
+      --seg-on: #31353b;
+      --canvas: #0a0f13;
+      --border: #3c494e;
+      --card-edge: transparent;
+      --grid: #1c2025;
+      --text-primary: #e0e2ea;
+      --text-secondary: #bbc9cf;
+      --text-muted: #859399;
+      --observed: #f4f6fa;
+      --accent: #a5e7ff;
+      --focus: #47d6ff;
+      --secondary: #14b88a;
+      --c-seasonal: #ff8fb1;
+      --band-heldout: rgba(71, 214, 255, 0.07);
+      --band-forecast: rgba(133, 147, 153, 0.07);
+      --m-linear: #b388ff;
+      --m-polynomial_seasonal: #ffb000;
+      --m-exponential_seasonal: #14b88a;
+      --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 16px rgba(0, 0, 0, 0.28);
+      --shadow-pop: 0 8px 28px rgba(0, 0, 0, 0.55);
+      --shadow-bar: 0 1px 8px rgba(0, 0, 0, 0.35);
     }
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --surface-0: #111110;
-    --surface-1: #1a1a19;
-    --border: #2e2d2b;
-    --grid: #262624;
-    --text-primary: #f0efec;
-    --text-secondary: #c3c2b7;
-    --text-muted: #8f8e88;
-    --observed: #f0efec;
-    --band-heldout: rgba(57, 135, 229, 0.10);
-    --band-forecast: rgba(195, 194, 183, 0.08);
-    --m-linear: #3987e5;
-    --m-polynomial_seasonal: #d95926;
-    --m-exponential_seasonal: #199e70;
+    --surface-0: #101419;
+    --surface-1: #1c2025;
+    --surface-low: #181c21;
+    --surface-high: #262a30;
+    --seg-on: #31353b;
+    --canvas: #0a0f13;
+    --border: #3c494e;
+    --card-edge: transparent;
+    --grid: #1c2025;
+    --text-primary: #e0e2ea;
+    --text-secondary: #bbc9cf;
+    --text-muted: #859399;
+    --observed: #f4f6fa;
+    --accent: #a5e7ff;
+    --focus: #47d6ff;
+    --secondary: #14b88a;
+    --c-seasonal: #ff8fb1;
+    --band-heldout: rgba(71, 214, 255, 0.07);
+    --band-forecast: rgba(133, 147, 153, 0.07);
+    --m-linear: #b388ff;
+    --m-polynomial_seasonal: #ffb000;
+    --m-exponential_seasonal: #14b88a;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 16px rgba(0, 0, 0, 0.28);
+    --shadow-pop: 0 8px 28px rgba(0, 0, 0, 0.55);
+    --shadow-bar: 0 1px 8px rgba(0, 0, 0, 0.35);
+  }
+  :root {
+    --zone-train: color-mix(in srgb, var(--border) 45%, var(--canvas));
+    --zone-held: color-mix(in srgb, var(--accent) 80%, var(--canvas));
+    --zone-fore: var(--surface-high);
   }
 
   * { box-sizing: border-box; }
+  html { background: var(--surface-0); }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
   body {
     margin: 0;
     background: var(--surface-0);
     color: var(--text-primary);
-    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font: 400 14px/1.6 var(--font-sans);
+    -webkit-font-smoothing: antialiased;
   }
-  main { max-width: 1120px; margin: 0 auto; padding: 28px 16px 48px; }
-  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
-  .sub { color: var(--text-secondary); margin: 0 0 22px; }
+  button { font: inherit; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .wrap { max-width: 1520px; margin: 0 auto; padding-inline: var(--gutter); }
+  .cap { font: 600 11px/14px var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary); margin: 0; }
+  .lbl { font: 400 12px/16px var(--font-mono); text-transform: uppercase; color: var(--text-secondary); }
 
-  .card {
-    background: var(--surface-1);
+  /* top bar */
+  .topbar {
+    position: sticky; top: 0; z-index: 40; box-shadow: var(--shadow-bar);
+    background: color-mix(in srgb, var(--surface-0) 90%, transparent);
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  }
+  .topbar .wrap { height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .brand-mark {
+    width: 32px; height: 32px; flex: none; border-radius: 8px; display: grid; place-items: center;
+    color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--surface-1));
+  }
+  .brand-text { min-width: 0; }
+  .brand-name { display: block; font: 600 18px/1 var(--font-display); letter-spacing: -0.01em; white-space: nowrap; }
+  .brand-sub {
+    display: block; margin-top: 3px; font: 600 11px/14px var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .nav { display: none; align-items: center; gap: 24px; }
+  .nav a {
+    padding: 4px 0; border-bottom: 2px solid transparent; color: var(--text-secondary); text-decoration: none;
+    font: 400 14px/20px var(--font-sans);
+  }
+  .nav a:hover { color: var(--text-primary); }
+  .nav a[aria-current="true"] { color: var(--accent); font-weight: 600; border-bottom-color: var(--accent); }
+  @media (min-width: 1000px) { .nav { display: flex; } }
+  .top-pills { display: flex; align-items: center; gap: 12px; flex: none; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 2px;
+    background: var(--surface-1); color: var(--text-secondary); font: 400 12px/16px var(--font-mono); white-space: nowrap;
+  }
+  .pill b { color: var(--secondary); font-weight: 600; }
+  .pill-status { display: none; background: var(--surface-low); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; background: var(--secondary); }
+  @media (min-width: 1280px) { .pill-status { display: inline-flex; } }
+  /* link to the presentation page (presentation.html) */
+  .deck-link {
+    display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 4px; white-space: nowrap;
+    background: var(--accent); color: var(--surface-0); font: 600 12px/16px var(--font-sans); text-decoration: none;
+  }
+  .deck-link:hover { filter: brightness(1.08); }
+
+  /* masthead */
+  /* Header photo. It is dark in both themes, so the header carries the dark tokens itself
+     and reads the same whether the page is light or dark. */
+  .masthead {
+    --hero-img: url("assets/observatory-hero.jpg");
+    color-scheme: dark;
+    --surface-0: #101419; --surface-1: rgba(16, 20, 25, 0.62); --surface-low: rgba(24, 28, 33, 0.7);
+    --surface-high: rgba(38, 42, 48, 0.78); --seg-on: #31353b; --canvas: #0a0f13;
+    --border: rgba(255, 255, 255, 0.14); --card-edge: transparent; --grid: #1c2025;
+    --text-primary: #eef1f6; --text-secondary: #ccd6db; --text-muted: #9fadb3; --observed: #f4f6fa;
+    --accent: #a5e7ff; --focus: #47d6ff; --secondary: #14b88a; --c-seasonal: #ff8fb1;
+    --m-linear: #b388ff; --m-polynomial_seasonal: #ffb000; --m-exponential_seasonal: #14b88a;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 16px rgba(0, 0, 0, 0.28);
+    position: relative; overflow: hidden; color: var(--text-primary);
+    padding: 32px 0 40px; scroll-margin-top: 64px;
+    background:
+      linear-gradient(90deg, rgba(7, 11, 16, 0.86) 0%, rgba(7, 11, 16, 0.62) 36%, rgba(7, 11, 16, 0.22) 70%, rgba(7, 11, 16, 0.05) 100%),
+      linear-gradient(0deg, rgba(7, 11, 16, 0.72) 0%, rgba(7, 11, 16, 0) 40%),
+      var(--hero-img) center 74% / cover no-repeat,
+      #0a0f13;
+  }
+  .masthead .kpi, .masthead .horizon {
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 18px;
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
   }
+  @media (max-width: 700px) { .masthead { --hero-img: url("assets/observatory-hero-1000.jpg"); } }
+  .masthead .wrap { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 24px; }
+  .masthead-top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; }
+  .masthead-copy { max-width: 60rem; }
+  .eyebrow-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 8px; }
+  .station {
+    display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 2px; max-width: 100%;
+    background: var(--surface-high); color: var(--accent); font: 400 12px/16px var(--font-mono);
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .station i { position: relative; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  @keyframes ping { 75%, 100% { transform: scale(2.4); opacity: 0; } }
+  @media (prefers-reduced-motion: no-preference) {
+    .station i::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--accent); animation: ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite; }
+  }
+  .elev { font: 400 12px/16px var(--font-mono); color: var(--text-secondary); }
+  h1 { font: 700 clamp(36px, 5vw, 56px)/1.14 var(--font-display); letter-spacing: -0.03em; margin: 0 0 8px; }
+  .sub { font: 400 16px/1.6 var(--font-sans); color: var(--text-secondary); margin: 0; }
+  .horizon { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 8px; background: var(--surface-1); box-shadow: var(--shadow-card); }
+  .horizon > div { display: flex; flex-direction: column; gap: 2px; }
+  .horizon b { font: 600 18px/24px var(--font-display); letter-spacing: -0.01em; white-space: nowrap; }
+  .horizon .bar { width: 1px; align-self: stretch; background: var(--border); }
+  #hz-train { color: var(--secondary); }
+  #hz-held { color: var(--accent); }
 
-  .controls { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: end; margin-bottom: 16px; }
-  .field { display: flex; flex-direction: column; gap: 6px; }
-  .field > span { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+  /* KPI tiles */
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+  .kpi { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 16px; border-radius: 8px; background: var(--surface-1); box-shadow: var(--shadow-card); }
+  .kpi-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .kpi-head svg { flex: none; color: var(--accent); }
+  .kpi-val { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px; font: 700 2.75rem/3rem var(--font-mono); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .kpi-val small { font: 600 18px/24px var(--font-display); letter-spacing: -0.01em; color: var(--text-secondary); }
+  .kpi-sub { font: 400 12px/18px var(--font-mono); color: var(--text-secondary); }
+  .kpi-trend .kpi-val { color: var(--text-primary); }
+  .kpi-growth .kpi-val { color: var(--secondary); }
+  .kpi-seasonal .kpi-val, .kpi-seasonal .kpi-head svg { color: var(--c-seasonal); }
+  .kpi-error .kpi-val { color: var(--accent); }
+  @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .kpis { grid-template-columns: minmax(0, 1fr); } }
 
-  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; flex-wrap: wrap; }
+  /* sections */
+  .band { padding: 48px 0; scroll-margin-top: 64px; }
+  .band.alt { background: var(--canvas); }
+  .sec-head { display: flex; flex-direction: column; gap: 4px; max-width: 52rem; margin-bottom: 24px; }
+  .eyebrow { font: 600 11px/14px var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--secondary); }
+  .eyebrow.e-accent { color: var(--accent); }
+  .sec-title { font: 600 clamp(26px, 3vw, 32px)/1.25 var(--font-display); letter-spacing: -0.02em; margin: 0; }
+  .sec-lead { font: 400 14px/1.6 var(--font-sans); color: var(--text-secondary); margin: 4px 0 0; }
+  .sec-lead b, .fig figcaption b, .prose b { color: var(--text-primary); font-weight: 600; }
+  .row12 { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; align-items: start; }
+  .row12 + .row12 { margin-top: 16px; }
+  .c4 { grid-column: span 4; } .c5 { grid-column: span 5; } .c7 { grid-column: span 7; } .c8 { grid-column: span 8; } .c12 { grid-column: 1 / -1; }
+  @media (max-width: 900px) { .row12 > * { grid-column: 1 / -1; } }
+  .stack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .card-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-bottom: 12px; }
+  .card-title { font: 600 18px/24px var(--font-display); letter-spacing: -0.01em; margin: 0; }
+  .prose { display: flex; flex-direction: column; gap: 12px; margin: 0; font: 400 14px/1.6 var(--font-sans); color: var(--text-secondary); }
+  .prose p { margin: 0; }
+  .steps { display: flex; flex-direction: column; gap: 16px; margin: 0; padding: 0; list-style: none; counter-reset: step; font: 400 14px/1.6 var(--font-sans); color: var(--text-secondary); }
+  .steps li { position: relative; padding-left: 36px; counter-increment: step; }
+  .steps li::before {
+    content: counter(step); position: absolute; left: 0; top: 1px; width: 24px; height: 24px; display: grid; place-items: center;
+    border-radius: 50%; background: var(--surface-high); color: var(--accent); font: 600 12px/1 var(--font-mono);
+  }
+  .steps b { color: var(--text-primary); font-weight: 600; }
+  .ticks-list { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; font: 400 14px/1.5 var(--font-sans); color: var(--text-primary); }
+  .ticks-list li { display: flex; align-items: flex-start; gap: 8px; }
+  .ticks-list svg { flex: none; margin-top: 3px; color: var(--secondary); }
+  .formula { margin: 0; padding: 12px; border-radius: 4px; background: var(--canvas); color: var(--accent); font: 500 14px/20px var(--font-mono); overflow-x: auto; }
+  .c-trend { color: var(--accent); font-weight: 600; }
+  .c-seas { color: var(--c-seasonal); font-weight: 600; }
+  .mini-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+  @media (max-width: 640px) { .mini-row { grid-template-columns: minmax(0, 1fr); } }
+  .mini { display: flex; flex-direction: column; gap: 4px; padding: 12px; border-radius: 4px; background: var(--surface-low); }
+  .mini h4 { display: flex; align-items: center; gap: 8px; margin: 0; font: 600 16px/24px var(--font-display); letter-spacing: -0.01em; }
+  .mini p { margin: 0; font: 400 12px/18px var(--font-sans); color: var(--text-secondary); }
+  .tag-fig { padding: 2px 8px; border-radius: 2px; background: var(--surface-high); color: var(--text-secondary); font: 600 11px/14px var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; }
+
+  /* figures and static graphs */
+  .fig { display: flex; flex-direction: column; gap: 12px; margin: 0; min-width: 0; }
+  .fig figcaption { font: 400 13px/20px var(--font-sans); color: var(--text-secondary); }
+  .plot { position: relative; width: 100%; padding: 8px; border-radius: 8px; background: var(--canvas); }
+  .plot svg { display: block; width: 100%; height: auto; }
+  .plot + .plot { margin-top: 8px; }
+  .p-title { fill: var(--text-secondary); font: 600 11px var(--font-mono); letter-spacing: 0.04em; }
+  .zero { stroke: var(--text-muted); stroke-width: 1; stroke-opacity: 0.7; }
+  .note-t { fill: var(--text-primary); font: 600 11px var(--font-mono); paint-order: stroke; stroke: var(--canvas); stroke-width: 3px; stroke-linejoin: round; }
+  .p-hover { stroke: var(--text-muted); }
+  .key { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0; padding: 0; list-style: none; font: 400 12px/16px var(--font-mono); color: var(--text-secondary); }
+  .key li { display: inline-flex; align-items: center; gap: 6px; }
+  .key .sw { display: inline-block; flex: none; width: 14px; height: 3px; border-radius: 2px; background: var(--c, currentColor); }
+  .key .sw.bar { height: 10px; width: 10px; opacity: 0.6; }
+  .key .sw.dash { height: 0; background: none; border-top: 3px dashed var(--c, currentColor); border-radius: 0; }
+  .err-list { display: flex; flex-direction: column; gap: 2px; margin: 4px 0 0; padding: 0; list-style: none; font: 500 12px/18px var(--font-mono); }
+  .err-list li { display: flex; justify-content: space-between; gap: 12px; color: var(--m); }
+  .err-list span { color: var(--text-primary); }
+
+  /* model cards, error bars, matrix */
+  .models3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 900px) { .models3 { grid-template-columns: minmax(0, 1fr); } }
+  .mcard { display: flex; flex-direction: column; gap: 16px; border-top: 3px solid var(--m); }
+  .mcard-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .badge { padding: 2px 8px; border-radius: 2px; background: var(--surface-high); color: var(--m); font: 600 11px/14px var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em; }
+  .err { color: var(--m); font: 600 12px/16px var(--font-mono); white-space: nowrap; }
+  .mcard h3 { margin: 0; font: 600 18px/24px var(--font-display); letter-spacing: -0.01em; }
+  .mcard p { margin: 0; font: 400 13px/20px var(--font-sans); color: var(--text-secondary); }
+  .mstats { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; margin: auto 0 0; padding-top: 12px; border-top: 1px solid var(--border); font: 400 12px/18px var(--font-mono); }
+  .mstats dt { color: var(--text-secondary); white-space: normal; line-height: 18px; }
+  .mstats dd { margin: 0; text-align: right; font: 600 12px/18px var(--font-mono); white-space: nowrap; }
+  .bars { display: flex; flex-direction: column; gap: 16px; }
+  .bar-group { display: flex; flex-direction: column; gap: 6px; }
+  .bar-name { color: var(--m); font: 600 12px/16px var(--font-mono); }
+  .bar-row { display: grid; grid-template-columns: 80px minmax(0, 1fr) 48px; align-items: center; gap: 8px; font: 400 12px/16px var(--font-mono); color: var(--text-secondary); }
+  .bar-track { height: 12px; border-radius: 2px; background: var(--surface-low); overflow: hidden; }
+  .bar-fill { width: var(--w); min-width: 2px; height: 100%; border-radius: 2px; background: var(--m); }
+  .bar-fill.fit { background: color-mix(in srgb, var(--m) 45%, var(--surface-low)); }
+  .bar-val { text-align: right; color: var(--text-primary); font-weight: 600; }
+  .scroll { overflow-x: auto; }
+  .matrix { min-width: 860px; }
+  .matrix td.num { white-space: nowrap; }
+  .matrix td.formula-cell { font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
+  tr.best td { background: color-mix(in srgb, var(--m) 12%, var(--surface-1)); }
+  .fine { margin: 12px 0 0; font: 400 12px/18px var(--font-sans); color: var(--text-secondary); }
+
+  /* controls */
+  .controls { display: flex; flex-direction: column; gap: 16px; margin-bottom: 16px; }
+  .controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px 24px; align-items: end; }
+  @media (min-width: 1280px) {
+    /* wide enough for the model strip to sit on one line, as in the design */
+    .controls-grid { grid-template-columns: max-content minmax(240px, 1fr) minmax(240px, 1fr); }
+  }
+  .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 2px; max-width: 100%; background: var(--surface-low); border-radius: 4px; }
   .seg button {
-    font: inherit; font-size: 14px; border: 0; background: transparent; color: var(--text-secondary);
-    padding: 7px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+    display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 0; border-radius: 2px;
+    background: transparent; color: var(--text-secondary); font: 400 12px/16px var(--font-mono); text-align: left; cursor: pointer;
   }
-  .seg button + button { border-left: 1px solid var(--border); }
-  .seg button[aria-pressed="true"] { background: var(--surface-0); color: var(--text-primary); font-weight: 600; }
-  .swatch { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+  .seg button:hover:not(:disabled) { color: var(--text-primary); }
+  .seg button[aria-pressed="true"] { background: var(--seg-on); color: var(--text-primary); font-weight: 600; }
+  .seg button:disabled { opacity: 0.4; cursor: default; }
+  .swatch { width: 12px; height: 3px; border-radius: 2px; display: inline-block; flex: none; }
+  #model-seg button[aria-pressed="true"] { color: var(--m); box-shadow: inset 0 -2px 0 var(--m); }
+  #model-seg .swatch { width: 10px; }
 
-  .month-row { display: flex; gap: 6px; align-items: center; }
+  .month-row { display: flex; gap: 4px; align-items: center; }
   .month-row input {
-    font: inherit; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px;
-    background: var(--surface-1); color: var(--text-primary);
+    flex: 1; min-width: 0; height: 32px; padding: 0 12px; border: 0; border-radius: 2px;
+    background: var(--surface-low); color: var(--text-primary); font: 400 12px/16px var(--font-mono);
   }
   .btn {
-    font: inherit; font-size: 14px; border: 1px solid var(--border); border-radius: 8px;
-    background: var(--surface-1); color: var(--text-secondary); padding: 6px 10px; cursor: pointer;
+    flex: none; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 2px;
+    background: var(--surface-low); color: var(--text-secondary); cursor: pointer;
   }
-  .btn:hover, .seg button:hover { color: var(--text-primary); }
-  .search-field { margin-left: auto; }
+  .btn:hover { background: var(--surface-high); color: var(--text-primary); }
+
   .search-wrap { position: relative; }
-  #search {
-    font: inherit; padding: 6px 8px; width: 200px; border: 1px solid var(--border); border-radius: 8px;
-    background: var(--surface-1); color: var(--text-primary);
+  .search-wrap::before {
+    content: ""; position: absolute; left: 10px; top: 16px; width: 14px; height: 14px; margin-top: -7px; pointer-events: none; background: var(--text-secondary);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E") center / contain no-repeat;
   }
+  #search {
+    width: 100%; height: 32px; padding: 0 12px 0 32px; border: 0; border-radius: 2px;
+    background: var(--surface-low); color: var(--text-primary); font: 400 12px/16px var(--font-mono);
+  }
+  #search::placeholder { color: var(--text-muted); }
   .suggest {
     position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 30; margin: 0; padding: 4px; list-style: none;
-    background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25); max-height: 280px; overflow-y: auto;
+    background: var(--surface-high); border-radius: 4px; box-shadow: var(--shadow-pop); max-height: 280px; overflow-y: auto;
   }
   .suggest[hidden] { display: none; }
   .suggest li {
     display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 6px 8px;
-    border-radius: 6px; font-size: 14px; cursor: pointer; font-variant-numeric: tabular-nums;
+    border-radius: 2px; font: 400 12px/16px var(--font-mono); cursor: pointer;
   }
   .suggest li small { font-size: 11px; color: var(--text-muted); }
-  .suggest li[aria-selected="true"], .suggest li:hover { background: var(--surface-0); }
-  .msg {
-    position: absolute; top: calc(100% + 4px); right: 0; width: max-content; max-width: 260px; text-align: right;
-    font-size: 12px; line-height: 1.3; color: var(--text-secondary);
+  .suggest li[aria-selected="true"], .suggest li:hover { background: color-mix(in srgb, var(--accent) 14%, var(--surface-1)); }
+  .msg { display: block; font-size: 12px; line-height: 1.3; color: var(--text-secondary); }
+  .msg:not(:empty) { margin-top: 4px; }
+
+  .jump-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .jump-row .cap { margin-right: 4px; }
+  #jump-seg { display: flex; flex-wrap: wrap; gap: 8px; }
+  #jump-seg button {
+    padding: 4px 16px; border: 0; border-radius: 2px; background: var(--surface-low); color: var(--text-primary);
+    font: 400 12px/16px var(--font-mono); cursor: pointer;
   }
-  @media (max-width: 640px) { .search-field { margin-left: 0; width: 100%; } #search { width: 100%; } }
-  #chart svg + svg { margin-top: 4px; }
-  #chart svg { user-select: none; }
-  .chart-tools { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; margin-bottom: 10px; }
+  #jump-seg button:hover { background: var(--surface-high); }
+
+  /* cards */
+  .card { background: var(--surface-1); border: 1px solid var(--card-edge); border-radius: 8px; box-shadow: var(--shadow-card); padding: 24px; min-width: 0; }
+
+  /* explorer layout */
+  .grid { display: grid; grid-template-columns: minmax(320px, 1fr) minmax(0, 2fr); gap: 16px; align-items: start; }
+  @media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  .side { display: flex; flex-direction: column; gap: 12px; }
+
+  /* result panel */
+  .probe-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .probe-model { display: inline-flex; align-items: center; gap: 6px; font: 400 12px/16px var(--font-mono); min-width: 0; }
+  .chip { padding: 2px 8px; border-radius: 2px; background: var(--surface-high); color: var(--text-secondary); font: 400 12px/16px var(--font-mono); white-space: nowrap; }
+  .metric { margin: 12px 0 4px; font: 700 2.75rem/3rem var(--font-mono); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .metric small { font: 600 18px/24px var(--font-display); letter-spacing: -0.01em; color: var(--text-secondary); }
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 2px; background: var(--surface-high); color: var(--text-secondary);
+    font: 600 11px/14px var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .tag-held { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); }
+  .tag-train { background: color-mix(in srgb, var(--border) 45%, transparent); }
+  #r-tag { display: flex; flex-wrap: wrap; gap: 6px; }
+  #r-details { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; margin: 16px 0 0; padding-top: 8px; font-size: 14px; }
+  #r-details dt { color: var(--text-secondary); white-space: nowrap; line-height: 22px; }
+  #r-details dd { margin: 0; text-align: right; font: 500 14px/22px var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  #r-details dd.seas { color: var(--c-seasonal); }
+  #r-details dd.acc { color: var(--accent); }
+  #r-details dd.region {
+    grid-column: 1 / -1; margin-top: 8px; padding: 8px; border-radius: 2px; text-align: left; white-space: normal;
+    background: var(--surface-low); color: var(--text-secondary); font: 400 12px/16px var(--font-mono);
+  }
+  .compare { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .tbl { width: 100%; border-collapse: separate; border-spacing: 0; font: 500 14px/20px var(--font-mono); font-variant-numeric: tabular-nums; }
+  .tbl th { padding: 0 8px 6px; text-align: left; font: 400 12px/16px var(--font-mono); text-transform: uppercase; color: var(--text-secondary); }
+  .tbl td { padding: 6px 8px; }
+  .tbl td:first-child { font-size: 12px; white-space: normal; border-radius: 2px 0 0 2px; }
+  .tbl td:last-child { border-radius: 0 2px 2px 0; }
+  .tbl td.num, .tbl th.num { text-align: right; }
+  .tbl td .swatch { width: 12px; height: 6px; border-radius: 3px; margin-right: 4px; }
+  .tbl tr.active td { background: var(--surface-high); font-weight: 700; }
+
+  /* chart card */
+  .chart-card { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .chart-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px; }
   .tool-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .lbl { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
-  .seg button:disabled { opacity: 0.4; cursor: default; }
-  .legend { margin-bottom: 8px; }
-  .brush { fill: var(--m-linear); fill-opacity: 0.15; stroke: var(--m-linear); stroke-width: 1; }
-  .chart-title { fill: var(--text-primary); font-size: 13px; font-weight: 600; }
-
-  .slider-block { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
-  .slider-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 16px; margin-bottom: 4px; }
-  .slider-head .now { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .slider-head .now small { font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-left: 8px; }
-  .zones { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--text-secondary); }
-  .zones span { display: inline-flex; align-items: center; gap: 6px; }
-  .zones i { width: 12px; height: 8px; border-radius: 2px; display: inline-block; }
-  .z-train { background: var(--zone-train); }
-  .z-held { background: var(--zone-held); }
-  .z-fore { background: var(--zone-fore); }
-  :root {
-    --zone-train: color-mix(in srgb, var(--text-muted) 35%, var(--surface-1));
-    --zone-held: color-mix(in srgb, var(--m-linear) 55%, var(--surface-1));
-    --zone-fore: color-mix(in srgb, var(--text-muted) 14%, var(--surface-1));
+  #show-seg { gap: 8px; padding: 0; background: none; }
+  #show-seg button { background: var(--surface-high); box-shadow: inset 0 0 0 1px transparent; }
+  #show-seg button[aria-pressed="true"] { background: color-mix(in srgb, var(--m) 16%, var(--surface-1)); color: var(--m); box-shadow: inset 0 0 0 1px var(--m); }
+  #show-seg .swatch { width: 10px; height: 10px; border-radius: 50%; background: transparent !important; box-shadow: inset 0 0 0 2px var(--m); }
+  #show-seg button[aria-pressed="true"] .swatch { background: var(--m) !important; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font: 400 12px/16px var(--font-mono); color: var(--text-secondary); }
+  .legend > span { display: inline-flex; align-items: center; gap: 6px; }
+  .strip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; width: fit-content; max-width: 100%; padding: 2px 6px; background: var(--surface-low); border-radius: 4px; }
+  .strip .seg { padding: 0; background: none; }
+  .strip .seg + .seg { margin-left: 4px; }
+  .strip-div { width: 1px; height: 16px; background: var(--border); }
+  .canvas { padding: 12px; border-radius: 8px; background: var(--canvas); overflow: hidden; }
+  #chart { position: relative; width: 100%; }
+  #chart svg { display: block; width: 100%; height: auto; outline: none; user-select: none; }
+  #chart svg + svg { margin-top: 4px; }
+  #chart svg:focus-visible { box-shadow: 0 0 0 2px var(--focus); border-radius: 4px; }
+  .axis text { fill: var(--text-muted); font: 400 11px var(--font-mono); }
+  .axis line, .axis path { stroke: var(--grid); }
+  .band-label { fill: var(--text-muted); font: 500 10px var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; }
+  .chart-title { fill: var(--text-primary); font: 600 12px var(--font-mono); }
+  .boundary { stroke: var(--accent); stroke-opacity: 0.55; stroke-dasharray: 4 3; }
+  .brush { fill: var(--accent); fill-opacity: 0.15; stroke: var(--accent); stroke-width: 1; }
+  .tooltip {
+    position: absolute; z-index: 5; display: none; pointer-events: none; white-space: nowrap; padding: 8px 12px;
+    background: var(--surface-high); border: 1px solid var(--card-edge); border-radius: 8px; box-shadow: var(--shadow-pop);
+    font: 400 12px/1.5 var(--font-mono); font-variant-numeric: tabular-nums;
   }
+  .tooltip .tt-row { display: flex; align-items: center; gap: 6px; }
+  .tooltip .tt-row b { margin-left: auto; padding-left: 12px; font-weight: 600; }
 
+  /* month slider */
+  .slider-block { display: flex; flex-direction: column; gap: 8px; }
+  .slider-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 16px; }
+  .slider-head .now { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+  .slider-head #sl-label { font: 600 18px/24px var(--font-display); letter-spacing: -0.01em; }
+  .slider-head small { font: 600 12px/16px var(--font-mono); color: var(--accent); }
+  .zones { display: flex; flex-wrap: wrap; gap: 4px 16px; font: 400 12px/16px var(--font-mono); color: var(--text-secondary); }
+  .zones span { display: inline-flex; align-items: center; gap: 6px; }
+  .zones i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .z-train { background: var(--zone-train); box-shadow: inset 0 0 0 1px var(--border); }
+  .z-held { background: var(--zone-held); }
+  .z-fore { background: var(--zone-fore); box-shadow: inset 0 0 0 1px var(--border); }
   #slider {
-    -webkit-appearance: none; appearance: none; width: 100%; height: 32px; margin: 0;
+    -webkit-appearance: none; appearance: none; width: 100%; height: 28px; margin: 0;
     background: transparent; cursor: pointer; touch-action: pan-y;
   }
-  #slider::-webkit-slider-runnable-track { height: 10px; border-radius: 5px; background: var(--track); }
-  #slider::-moz-range-track { height: 10px; border-radius: 5px; background: var(--track); }
+  #slider::-webkit-slider-runnable-track { height: 12px; border-radius: 6px; background: var(--track); }
+  #slider::-moz-range-track { height: 12px; border-radius: 6px; background: var(--track); }
   #slider::-webkit-slider-thumb {
-    -webkit-appearance: none; appearance: none; width: 22px; height: 22px; margin-top: -6px; border-radius: 50%;
-    background: var(--text-primary); border: 3px solid var(--surface-1); box-shadow: 0 0 0 1px var(--text-muted);
+    -webkit-appearance: none; appearance: none; width: 20px; height: 20px; margin-top: -4px; border-radius: 50%;
+    background: var(--text-primary); border: 2px solid var(--accent); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
   }
   #slider::-moz-range-thumb {
     width: 16px; height: 16px; border-radius: 50%;
-    background: var(--text-primary); border: 3px solid var(--surface-1); box-shadow: 0 0 0 1px var(--text-muted);
+    background: var(--text-primary); border: 2px solid var(--accent); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
   }
-  #slider:focus-visible { outline: 2px solid var(--m-linear); outline-offset: 4px; border-radius: 6px; }
-  .ticks { position: relative; height: 18px; font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  #slider:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; border-radius: 6px; }
+  .ticks { position: relative; height: 16px; font: 400 11px/16px var(--font-mono); color: var(--text-muted); }
   .ticks span { position: absolute; top: 0; white-space: nowrap; }
+  .hint { font: 400 12px/18px var(--font-sans); color: var(--text-secondary); margin: 0; }
 
-  .grid { display: grid; grid-template-columns: 320px 1fr; gap: 16px; }
-  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+  /* notice, footer */
+  .notice { display: flex; align-items: flex-start; gap: 12px; margin-top: 16px; padding: 16px; }
+  .notice svg { flex: none; color: var(--accent); margin-top: 2px; }
+  .notice-title { font: 600 18px/24px var(--font-display); letter-spacing: -0.01em; margin: 0 0 2px; }
+  .note { font: 400 12px/18px var(--font-sans); color: var(--text-secondary); margin: 0; }
+  .foot { padding: 24px 0 40px; border-top: 1px solid var(--border); color: var(--text-secondary); font: 400 12px/18px var(--font-mono); }
+  .foot .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 24px; }
 
-  .result .label { color: var(--text-secondary); font-size: 14px; }
-  .result .hero { font-size: 44px; font-weight: 700; line-height: 1.1; margin: 6px 0 2px; font-variant-numeric: tabular-nums; }
-  .result .hero small { font-size: 18px; font-weight: 500; color: var(--text-secondary); }
-  .tag {
-    display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
-    border: 1px solid var(--border); color: var(--text-secondary); margin-top: 6px;
+  @media (max-width: 1024px) { :root { --gutter: 32px; } }
+  @media (max-width: 640px) {
+    :root { --gutter: 16px; }
+    .card { padding: 16px; }
+    .band { padding: 32px 0; }
+    .brand-sub { display: none; }
+    .masthead { padding: 24px 0 32px; }
+    .horizon { width: 100%; flex-direction: column; align-items: flex-start; gap: 8px; }
+    .horizon .bar { width: 100%; height: 1px; align-self: stretch; }
+    .station { letter-spacing: 0.04em; }
+    .strip-div { display: none; }
+    .metric, .kpi-val { font-size: 2.25rem; line-height: 2.5rem; }
   }
-  dl { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; margin: 16px 0 0; font-size: 14px; }
-  dt { color: var(--text-secondary); }
-  dt { white-space: nowrap; }
-  dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
-  dd.region { grid-column: 1 / -1; text-align: left; font-weight: 400; color: var(--text-secondary); white-space: normal; }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 16px; font-variant-numeric: tabular-nums; }
-  th, td { text-align: left; padding: 6px 4px; border-top: 1px solid var(--border); }
-  th { color: var(--text-muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; border-top: 0; }
-  td.num, th.num { text-align: right; }
-  tr.active td { font-weight: 700; }
-  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin: 20px 0 0; }
-
-  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--text-secondary); }
-  .legend span { display: inline-flex; align-items: center; gap: 6px; }
-  #chart { position: relative; width: 100%; }
-  #chart svg { display: block; width: 100%; height: auto; outline: none; }
-  #chart svg:focus-visible { box-shadow: 0 0 0 2px var(--m-linear); border-radius: 6px; }
-  .axis text { fill: var(--text-muted); font-size: 12px; }
-  .axis line, .axis path { stroke: var(--grid); }
-  .band-label { fill: var(--text-muted); font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
-  .tooltip {
-    position: absolute; pointer-events: none; background: var(--surface-1); border: 1px solid var(--border);
-    border-radius: 8px; padding: 8px 10px; font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-    white-space: nowrap; display: none; font-variant-numeric: tabular-nums;
+  @media (max-width: 480px) { .top-pills { display: none; } }
+  @media (pointer: coarse) {
+    .seg button { padding-block: 10px; }
+    .btn { width: 40px; height: 40px; }
+    .month-row input, #search { height: 40px; }
+    #jump-seg button { padding-block: 10px; }
   }
-  .tooltip .tt-row { display: flex; align-items: center; gap: 6px; }
-  .tooltip .tt-row b { margin-left: auto; padding-left: 12px; }
-  .hint { font-size: 12px; color: var(--text-muted); margin: 8px 0 0; }
-  .note { color: var(--text-secondary); font-size: 13px; margin-top: 16px; }
 </style>
 </head>
 <body>
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18c2-1 3-5 5-5s2 3 4 3 2-6 4-6 3-4 5-6"/></svg>
+      </span>
+      <div class="brand-text">
+        <span class="brand-name">Keeling Curve Explorer</span>
+        <span class="brand-sub">Atmospheric CO₂ analysis &amp; forecasting</span>
+      </div>
+    </div>
+    <nav class="nav" aria-label="Page sections">
+      <a href="#overview">Overview</a>
+      <a href="#data">The data</a>
+      <a href="#analogy">Intuition</a>
+      <a href="#models">Models</a>
+      <a href="#explorer">Explorer</a>
+    </nav>
+    <div class="top-pills">
+      <span class="pill pill-status"><i class="dot"></i>NOAA Mauna Loa GML: <b>three-model suite</b></span>
+      <a class="deck-link" href="presentation.html">Presentation
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </div>
+</header>
+
 <main>
-  <h1>Keeling Curve Explorer</h1>
-  <p class="sub" id="subtitle">Monthly mean CO₂ at Mauna Loa, with three models fitted on March 1958 – December 2015.</p>
-
-  <div class="controls card">
-    <div class="field">
-      <span>Details for</span>
-      <div class="seg" id="model-seg" role="group" aria-label="Model"></div>
-    </div>
-    <div class="field">
-      <span>Month</span>
-      <div class="month-row">
-        <button class="btn" id="prev" aria-label="Previous month">‹</button>
-        <input type="month" id="month" aria-label="Select month">
-        <button class="btn" id="next" aria-label="Next month">›</button>
-      </div>
-    </div>
-    <div class="field search-field">
-      <span>Search by name</span>
-      <div class="search-wrap">
-        <input type="search" id="search" placeholder="e.g. March 2040" autocomplete="off" spellcheck="false"
-               role="combobox" aria-expanded="false" aria-controls="suggest" aria-autocomplete="list"
-               aria-label="Search for a month by name, for example March 2040" aria-describedby="search-msg">
-        <ul class="suggest" id="suggest" role="listbox" aria-label="Matching months" hidden></ul>
-        <small class="msg" id="search-msg" role="status"></small>
-      </div>
-    </div>
-    <div class="field">
-      <span>Jump to</span>
-      <div class="seg" id="jump-seg" role="group" aria-label="Jump to"></div>
-    </div>
-  </div>
-
-  <div class="grid">
-    <section class="card result" aria-live="polite">
-      <div class="label" id="r-label"></div>
-      <div class="hero" id="r-hero"></div>
-      <div id="r-tag"></div>
-      <dl id="r-details"></dl>
-      <h2>All models, this month</h2>
-      <table>
-        <thead><tr><th>Model</th><th class="num">ppm</th><th class="num" id="th-diff">vs measured</th></tr></thead>
-        <tbody id="r-table"></tbody>
-      </table>
-    </section>
-
-    <section class="card">
-      <div class="chart-tools">
-        <div class="tool-group">
-          <span class="lbl">Show on graph</span>
-          <div class="seg" id="show-seg" role="group" aria-label="Models drawn on the graph"></div>
-        </div>
-        <div class="tool-group">
-          <span class="lbl">Layout</span>
-          <div class="seg" id="layout-seg" role="group" aria-label="Layout when two or more models are shown">
-            <button data-layout="overlay" aria-pressed="true">Overlay</button>
-            <button data-layout="side" aria-pressed="false">Side by side</button>
+  <!-- 1. Overview -->
+  <section class="masthead" id="overview" aria-labelledby="top-h">
+    <div class="wrap">
+      <div class="masthead-top">
+        <div class="masthead-copy">
+          <div class="eyebrow-row">
+            <span class="station"><i></i>NOAA GML Baseline Station • MLO 19.5362°N 155.5763°W</span>
+            <span class="elev">Elevation 3,397 m MSL</span>
           </div>
+          <h1 id="top-h">Keeling Curve Explorer</h1>
+          <p class="sub" id="subtitle">Monthly mean CO₂ at Mauna Loa, with three models fitted on March 1958 – December 2015.</p>
         </div>
-        <div class="tool-group">
-          <span class="lbl">Zoom</span>
-          <div class="seg">
-            <button id="zoom-out" aria-label="Zoom out">−</button>
-            <button id="zoom-in" aria-label="Zoom in">+</button>
+        <div class="horizon">
+          <div>
+            <span class="cap">Model training Period</span>
+            <b id="hz-train"></b>
           </div>
-          <div class="seg" id="zoom-seg" role="group" aria-label="Zoom presets, centred on the selected month">
-            <button data-years="0" aria-pressed="true">All</button>
-            <button data-years="50" aria-pressed="false">50 yrs</button>
-            <button data-years="10" aria-pressed="false">10 yrs</button>
-            <button data-years="2" aria-pressed="false">2 yrs</button>
+          <span class="bar" aria-hidden="true"></span>
+          <div>
+            <span class="cap">Held-out validation</span>
+            <b id="hz-held"></b>
           </div>
         </div>
       </div>
-      <div class="legend" id="legend"></div>
-      <div id="chart"></div>
-      <div class="slider-block">
-        <div class="slider-head">
-          <div class="now"><span id="sl-label"></span><small id="sl-region"></small></div>
-          <div class="zones" aria-hidden="true">
-            <span><i class="z-train"></i>Used to fit</span>
-            <span><i class="z-held"></i>Held out</span>
-            <span><i class="z-fore"></i>Forecast</span>
+      <div class="kpis" id="kpis"></div>
+    </div>
+  </section>
+
+  <!-- 2. The data -->
+  <section class="band" id="data" aria-labelledby="data-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow e-accent">Observational record</span>
+        <h2 class="sec-title" id="data-h">What the measurements show</h2>
+        <p class="sec-lead">Since March 1958, scientists at Mauna Loa Observatory in Hawaii have measured the carbon dioxide in the air every month. The station sits high on a volcano, far from cities and forests, so its air is a clean sample of the whole atmosphere. This page uses <b data-v="n_obs"></b> monthly measurements from <b data-v="first_label"></b> to <b data-v="last_label"></b>. Everything below is built from them.</p>
+      </div>
+      <div class="row12">
+        <div class="card c8">
+          <figure class="fig">
+            <div class="card-head">
+              <h3 class="card-title">The Keeling curve</h3>
+              <ul class="key">
+                <li><span class="sw" style="--c:var(--observed)"></span>Measured</li>
+                <li><span class="sw dash" style="--c:var(--accent)"></span>Trend</li>
+                <li><span class="sw bar" style="--c:var(--accent)"></span>Held-out period</li>
+              </ul>
+            </div>
+            <div class="plot" id="p-record"></div>
+            <figcaption>Measured monthly mean CO₂ in parts per million (ppm). It climbs from <b data-v="v0"></b> ppm in <b data-v="first_label"></b> to <b data-v="v1"></b> ppm in <b data-v="last_label"></b>, a rise of <b data-v="rise"></b> ppm (<b data-v="rise_pct"></b>%). The dashed line is the smooth trend of the <b data-v="best_label"></b> model; the shaded stretch is the period kept out of model fitting.</figcaption>
+          </figure>
+        </div>
+        <div class="card c4">
+          <h3 class="card-title" style="margin-bottom:16px">How to read it</h3>
+          <ol class="steps">
+            <li><b>It climbs.</b> <span data-v="no_fall"></span></li>
+            <li><b>It is not a smooth line.</b> Each year it zig-zags by about <b data-v="swing"></b> ppm, peaking in <b data-v="peak_month"></b> and bottoming out in <b data-v="trough_month"></b>.</li>
+            <li><b>The climb is speeding up.</b> The yearly rise averaged <b data-v="g_early"></b> ppm per year in <span data-v="g_early_range"></span> and <b data-v="g_late"></b> ppm per year in <span data-v="g_late_range"></span>.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="row12">
+        <div class="card c8">
+          <figure class="fig">
+            <div class="card-head">
+              <h3 class="card-title">How fast does it rise?</h3>
+              <ul class="key">
+                <li><span class="sw bar" style="--c:var(--accent)"></span>Measured rise per year</li>
+                <li><span class="sw" style="--c:var(--m-exponential_seasonal)" id="key-best"></span><span data-v="best_label"></span></li>
+                <li><span class="sw dash" style="--c:var(--m-linear)"></span>Linear model</li>
+              </ul>
+            </div>
+            <div class="plot" id="p-growth"></div>
+            <figcaption>Bars: how much each year's average CO₂ exceeds the year before, in ppm per year. Solid line: the yearly growth of the <b data-v="best_label"></b> trend. Dashed line: the single constant rate (<b data-v="slope"></b> ppm per year) that a straight line is forced to use. The bars grow roughly <b data-v="g_ratio"></b>-fold, from <b data-v="g_early"></b> to <b data-v="g_late"></b> ppm per year.</figcaption>
+          </figure>
+        </div>
+        <div class="card c4">
+          <h3 class="card-title" style="margin-bottom:12px">Why one straight line is not enough</h3>
+          <div class="prose">
+            <p>A straight line says every year adds the same amount of CO₂. The bars say otherwise: the early years add far less than the recent ones. That is the first clue that the trend is <b>curved</b>, which is what the polynomial and exponential models are built to capture.</p>
+            <p>The bars also bounce from year to year, between <b data-v="g_min"></b> and <b data-v="g_max"></b> ppm per year. Part of that is real year-to-year variation in the climate system (El Niño years, for example), which none of these models try to predict.</p>
           </div>
         </div>
-        <input type="range" id="slider" min="0" step="1" aria-label="Month: drag to move through time">
-        <div class="ticks" id="sl-ticks" aria-hidden="true"></div>
       </div>
-      <p class="hint">Drag the slider or click the graph to pick a month. Drag across the graph to zoom to that stretch, Ctrl+scroll to zoom at the pointer, double-click to reset. With a graph focused, the arrow keys move by a month (hold Shift for a year).</p>
-    </section>
-  </div>
+    </div>
+  </section>
 
-  <p class="note" id="note"></p>
+  <!-- 3. The intuition -->
+  <section class="band alt" id="analogy" aria-labelledby="analogy-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Phenomenological foundation</span>
+        <h2 class="sec-title" id="analogy-h">The intuition: “the child on an escalator”</h2>
+        <p class="sec-lead">The measurements contain two motions laid on top of each other: a long-term rise and a repeating yearly swing. Pulling them apart is the key to modelling the curve.</p>
+      </div>
+      <div class="row12">
+        <div class="card c7">
+          <figure class="fig">
+            <div class="card-head">
+              <h3 class="card-title">Splitting the curve in two</h3>
+              <span class="tag-fig">Figure A.1</span>
+            </div>
+            <div>
+              <div class="plot" id="p-dec-obs"></div>
+              <div class="plot" id="p-dec-trend"></div>
+              <div class="plot" id="p-dec-seas"></div>
+            </div>
+            <figcaption>The last ten years, pulled apart with the <b data-v="best_label"></b> model. Top: what the instrument measured (solid) with the trend (dashed). Middle: the trend alone, a steady climb of <b data-v="trend10"></b> ppm in ten years. Bottom: the seasonal part alone, which swings between <b data-v="seas_min"></b> and <b data-v="seas_max"></b> ppm every year and averages out to about zero.</figcaption>
+          </figure>
+          <div class="mini-row">
+            <div class="mini">
+              <h4><span class="dot" style="background:var(--accent)"></span>1. The escalator (trend)</h4>
+              <p>Mostly the burning of fossil fuels and changes in land use carry the whole curve upward, by about <b data-v="g_now"></b> ppm per year at the end of the record.</p>
+            </div>
+            <div class="mini">
+              <h4><span class="dot" style="background:var(--c-seasonal)"></span>2. The jump (seasonality)</h4>
+              <p>Northern Hemisphere plants take CO₂ out of the air as they grow and give it back as leaves decay. The curve peaks in <b data-v="peak_month"></b> and bottoms out in <b data-v="trough_month"></b>.</p>
+            </div>
+          </div>
+        </div>
+        <div class="stack c5">
+          <div class="card">
+            <h3 class="card-title" style="margin-bottom:12px">The mathematical synthesis</h3>
+            <div class="prose">
+              <p>A child who jumps up and down on an upward escalator has a height that is the steady climb plus the jumping. Atmospheric CO₂ works the same way:</p>
+              <p class="formula">CO₂(t) = Baseline(t) + Seasonal(t) + ε(t)</p>
+              <p><span class="c-trend">Baseline(t)</span> is the slow rise, the escalator. <span class="c-seas">Seasonal(t)</span> is the repeating 12-month wave, the jump. ε(t) is the small leftover that no model captures.</p>
+            </div>
+          </div>
+          <div class="card">
+            <h3 class="card-title" style="margin-bottom:12px">Key takeaways</h3>
+            <ul class="ticks-list" id="takeaways"></ul>
+          </div>
+        </div>
+      </div>
+      <div class="row12">
+        <div class="card c7">
+          <figure class="fig">
+            <div class="card-head">
+              <h3 class="card-title">The jump, month by month</h3>
+              <ul class="key">
+                <li><span class="sw bar" style="--c:var(--c-seasonal)"></span>Measured average</li>
+                <li><span class="sw" style="--c:var(--m-exponential_seasonal)"></span>Fitted seasonal wave</li>
+              </ul>
+            </div>
+            <div class="plot" id="p-month"></div>
+            <figcaption>Average seasonal part for each calendar month. Bars: the measurements from <b data-v="first_label"></b> to <b data-v="train_end"></b> minus the trend. Line: the seasonal wave fitted by the <b data-v="best_label"></b> model. They agree closely, so the model has learned the shape of the year.</figcaption>
+          </figure>
+        </div>
+        <div class="card c5">
+          <h3 class="card-title" style="margin-bottom:12px">How the yearly wave is modelled</h3>
+          <div class="prose">
+            <p>Any repeating curve can be built by stacking sine and cosine waves of different lengths, called harmonics. The polynomial and exponential models each use <b data-v="harmonics"></b>: a 12-month wave for the main shape, plus 6-, 4- and 3-month waves that sharpen it.</p>
+            <p>The linear model has none, so it cannot follow the yearly wiggle at all. Every wiggle is left over as error.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. The models -->
+  <section class="band" id="models" aria-labelledby="models-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Statistical framework</span>
+        <h2 class="sec-title" id="models-h">Three models, one test</h2>
+        <p class="sec-lead">Each model was fitted only on <b data-v="first_label"></b> – <b data-v="train_end"></b>. Everything from <b data-v="held_label"></b> onward was held back, so the scores below measure how well each model predicts <b data-v="n_held"></b> months it has never seen.</p>
+      </div>
+      <div class="models3" id="model-cards"></div>
+      <div class="row12">
+        <div class="card c8">
+          <figure class="fig">
+            <div class="card-head">
+              <h3 class="card-title">Errors on the held-out months</h3>
+              <ul class="key" id="err-key"></ul>
+            </div>
+            <div>
+              <div class="plot" id="p-err-all"></div>
+              <div class="plot" id="p-err-zoom"></div>
+            </div>
+            <figcaption>Prediction minus measurement for each held-out month. Below zero means the model predicted too low. The first graph shows all three models; the second zooms in without the linear model so the other two can be compared.</figcaption>
+            <ul class="err-list" id="err-list"></ul>
+          </figure>
+        </div>
+        <div class="card c4">
+          <h3 class="card-title" style="margin-bottom:4px">Typical miss (RMSE)</h3>
+          <p class="fine" style="margin:0 0 16px">RMSE is the typical size of a miss, in ppm. Lower is better. A model that fits the months it saw but misses new ones has learned the past, not the pattern.</p>
+          <div class="bars" id="rmse-bars"></div>
+          <p class="fine" id="rmse-note"></p>
+        </div>
+      </div>
+      <div class="row12">
+        <div class="card c12">
+          <h3 class="card-title" style="margin-bottom:12px">Comprehensive statistical performance matrix</h3>
+          <div class="scroll">
+            <table class="tbl matrix">
+              <thead><tr>
+                <th>Model</th><th>Formula</th><th class="num">Fit R²</th><th class="num">Held-out RMSE</th>
+                <th class="num" id="th-est">Estimate</th><th class="num" id="th-50">2050</th><th class="num">2035 average</th>
+              </tr></thead>
+              <tbody id="matrix-body"></tbody>
+            </table>
+          </div>
+          <p class="fine"><b>Fit R²</b> is the share of the variation in the fitting months that the model explains (1 is perfect). <b>2035 average</b> shows the model's forecast for that year's mean with an error bar: <span id="bar-note"></span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. The interactive forecaster -->
+  <section class="band alt" id="explorer" aria-labelledby="explorer-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <span class="eyebrow">Future simulator</span>
+        <h2 class="sec-title" id="explorer-h">Interactive atmospheric forecaster</h2>
+        <p class="sec-lead">Examine expected atmospheric CO₂ concentrations at any date from the start of the record to 2076. Pick a month, switch between the models, and compare what each one predicts.</p>
+      </div>
+
+      <div class="controls card">
+        <div class="controls-grid">
+          <div class="field">
+            <span class="cap">Details for</span>
+            <div class="seg" id="model-seg" role="group" aria-label="Model"></div>
+          </div>
+          <div class="field">
+            <span class="cap">Month</span>
+            <div class="month-row">
+              <button class="btn" id="prev" aria-label="Previous month">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+              </button>
+              <input type="month" id="month" aria-label="Select month">
+              <button class="btn" id="next" aria-label="Next month">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="field">
+            <span class="cap">Search by name</span>
+            <div class="search-wrap">
+              <input type="search" id="search" placeholder="e.g. March 2040" autocomplete="off" spellcheck="false"
+                     role="combobox" aria-expanded="false" aria-controls="suggest" aria-autocomplete="list"
+                     aria-label="Search for a month by name, for example March 2040" aria-describedby="search-msg">
+              <ul class="suggest" id="suggest" role="listbox" aria-label="Matching months" hidden></ul>
+              <small class="msg" id="search-msg" role="status"></small>
+            </div>
+          </div>
+        </div>
+        <div class="jump-row">
+          <span class="cap">Jump to:</span>
+          <div id="jump-seg" role="group" aria-label="Jump to"></div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="side" aria-live="polite">
+          <section class="card result" aria-label="Selected month">
+            <div class="probe-head" id="r-label"></div>
+            <div class="metric" id="r-hero"></div>
+            <div id="r-tag"></div>
+            <dl id="r-details"></dl>
+          </section>
+          <section class="card compare" aria-labelledby="cmp-h">
+            <h3 class="cap" id="cmp-h">All models, selected month</h3>
+            <table class="tbl">
+              <thead><tr><th>Model</th><th class="num">ppm</th><th class="num" id="th-diff">vs measured</th></tr></thead>
+              <tbody id="r-table"></tbody>
+            </table>
+          </section>
+        </div>
+
+        <section class="card chart-card">
+          <div class="chart-top">
+            <div class="tool-group">
+              <span class="cap">Show on graph</span>
+              <div class="seg" id="show-seg" role="group" aria-label="Models drawn on the graph"></div>
+            </div>
+            <div class="legend" id="legend"></div>
+          </div>
+          <div class="strip">
+            <div class="tool-group">
+              <span class="lbl">View</span>
+              <div class="seg" id="layout-seg" role="group" aria-label="Layout when two or more models are shown">
+                <button data-layout="overlay" aria-pressed="true">Overlay</button>
+                <button data-layout="side" aria-pressed="false">Side by side</button>
+              </div>
+            </div>
+            <span class="strip-div" aria-hidden="true"></span>
+            <div class="tool-group">
+              <span class="lbl">Zoom</span>
+              <div class="seg">
+                <button id="zoom-out" aria-label="Zoom out">−</button>
+                <button id="zoom-in" aria-label="Zoom in">+</button>
+              </div>
+              <div class="seg" id="zoom-seg" role="group" aria-label="Zoom presets, centred on the selected month">
+                <button data-years="0" aria-pressed="true">All</button>
+                <button data-years="50" aria-pressed="false">50 yrs</button>
+                <button data-years="10" aria-pressed="false">10 yrs</button>
+                <button data-years="2" aria-pressed="false">2 yrs</button>
+              </div>
+            </div>
+          </div>
+          <div class="canvas"><div id="chart"></div></div>
+          <div class="slider-block">
+            <div class="slider-head">
+              <div class="now"><span id="sl-label"></span><small id="sl-region"></small></div>
+              <div class="zones" aria-hidden="true">
+                <span><i class="z-train"></i>Used to fit</span>
+                <span><i class="z-held"></i>Held out</span>
+                <span><i class="z-fore"></i>Forecast</span>
+              </div>
+            </div>
+            <input type="range" id="slider" min="0" step="1" aria-label="Month: drag to move through time">
+            <div class="ticks" id="sl-ticks" aria-hidden="true"></div>
+          </div>
+          <p class="hint">Drag the slider or click the graph to pick a month. Drag across the graph to zoom to that stretch, Ctrl+scroll to zoom at the pointer, double-click to reset. With a graph focused, the arrow keys move by a month (hold Shift for a year). The bars at mid-2035 are the error bar on that year's average, taken from 20-year backtests.</p>
+        </section>
+      </div>
+
+      <aside class="notice card" aria-labelledby="notice-h">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg>
+        <div>
+          <h3 class="notice-title" id="notice-h">Scientific assumption notice</h3>
+          <p class="note" id="note"></p>
+        </div>
+      </aside>
+    </div>
+  </section>
 </main>
+
+<footer class="foot">
+  <div class="wrap">
+    <span id="foot-src"></span>
+    <span id="foot-split"></span>
+  </div>
+</footer>
 
 <script src="data.js"></script>
 <script>
@@ -324,14 +918,14 @@
   const clamp = (i) => Math.max(0, Math.min(n - 1, i));
 
   function region(i) {
-    if (i > lastObs) return { name: "Forecast", text: `${((i - lastObs) / 12).toFixed(1)} years after the latest measurement` };
-    if (i >= heldOut) return { name: "Held out", text: "Not used to fit the models" };
-    return { name: "Training", text: "Used to fit the models" };
+    if (i > lastObs) return { key: "forecast", name: "Forecast", text: `${((i - lastObs) / 12).toFixed(1)} years after the latest measurement` };
+    if (i >= heldOut) return { key: "held", name: "Held out", text: "Not used to fit the models" };
+    return { key: "train", name: "Training", text: "Used to fit the models" };
   }
 
   // ---------- controls ----------
   $("model-seg").innerHTML = modelKeys.map((k) =>
-    `<button data-model="${k}"><span class="swatch" style="background:${color(k)}"></span>${D.models[k].label}</button>`
+    `<button data-model="${k}" style="--m:${color(k)}"><span class="swatch" style="background:${color(k)}"></span>${D.models[k].label}</button>`
   ).join("");
   $("model-seg").addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
@@ -488,7 +1082,7 @@
 
   // Which models are drawn: any subset of the three, including none
   $("show-seg").innerHTML = modelKeys.map((k) =>
-    `<button data-show="${k}"><span class="swatch" style="background:${color(k)}"></span>${D.models[k].label}</button>`
+    `<button data-show="${k}" style="--m:${color(k)}"><span class="swatch" style="background:${color(k)}"></span>${D.models[k].label}</button>`
   ).join("");
   $("show-seg").addEventListener("click", (e) => {
     const b = e.target.closest("button"); if (!b) return;
@@ -541,9 +1135,13 @@
     const obs = D.observed[i], pred = m.pred[i], r = region(i);
     const maunakea = D.maunakea.includes(months[i]);
 
-    $("r-label").textContent = `${m.label} · ${label(i)}`;
+    $("r-label").innerHTML =
+      `<span class="probe-model" style="color:${color(state.model)}"><i class="dot" style="background:${color(state.model)}"></i>${m.label}</span> ` +
+      `<span class="chip">${label(i)}</span>`;
+    const topPpm = $("tb-ppm"); // the top-bar ppm pill is optional; the page must not break without it
+    if (topPpm) topPpm.textContent = fmt(pred);
     $("r-hero").innerHTML = `${fmt(pred)} <small>ppm</small>`;
-    $("r-tag").innerHTML = `<span class="tag">${r.name}</span>` +
+    $("r-tag").innerHTML = `<span class="tag tag-${r.key}">${r.name}</span>` +
       (obs == null ? ` <span class="tag">No measurement</span>` : "") +
       (maunakea ? ` <span class="tag">Measured at Maunakea</span>` : "");
 
@@ -551,18 +1149,22 @@
       ["Measured", obs == null ? "–" : `${fmt(obs)} ppm`],
       ["Model error", obs == null ? "–" : `${signed(pred - obs)} ppm`],
       ["Trend", `${fmt(m.trend[i])} ppm`],
+      ["Seasonal part", `${signed(pred - m.trend[i])} ppm`, "seas"],
       ["Trend growth", `${fmt(m.growth[i])} ppm/yr`],
-      ["Held-out RMSE", `${fmt(m.test_rmse)} ppm`],
+      ["Held-out RMSE", `${fmt(m.test_rmse)} ppm`, "acc"],
     ];
-    $("r-details").innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("") +
+    if (months[i].startsWith("2035") && m.forecast_2035)
+      rows.push(["2035 average", `${fmt(m.forecast_2035.mean, 1)} ± ${fmt(m.forecast_2035.error_bar, 1)} ppm`]);
+    $("r-details").innerHTML = rows.map(([k, v, c]) => `<dt>${k}</dt><dd${c ? ` class="${c}"` : ""}>${v}</dd>`).join("") +
       `<dd class="region">${r.text}</dd>`;
 
-    $("th-diff").textContent = obs == null ? "vs selected" : "vs measured";
+    // forecast months: compare with the model chosen under "Details for", and say which one it is
+    $("th-diff").textContent = obs == null ? `vs ${D.models[state.model].label.split(" ")[0].toLowerCase()}` : "vs measured";
     $("r-table").innerHTML = modelKeys.map((k) => {
       const p = D.models[k].pred[i];
       const ref = obs == null ? pred : obs;
       return `<tr class="${k === state.model ? "active" : ""}">
-        <td><span class="swatch" style="background:${color(k)}"></span> ${D.models[k].label}</td>
+        <td style="color:${color(k)}"><span class="swatch" style="background:${color(k)}"></span> ${D.models[k].label}</td>
         <td class="num">${fmt(p)}</td>
         <td class="num">${k === state.model && obs == null ? "–" : signed(p - ref)}</td></tr>`;
     }).join("");
@@ -619,6 +1221,8 @@
     };
     band(heldOut, lastObs, "var(--band-heldout)", "Held out");
     band(lastObs, n - 1, "var(--band-forecast)", "Forecast");
+    if (heldOut > i0 && heldOut < i1)
+      parts.push(`<line class="boundary" x1="${x(heldOut)}" x2="${x(heldOut)}" y1="${pad.t}" y2="${H - pad.b}"/>`);
 
     const ys = niceStep(hi - lo, H < 260 ? 4 : 6);
     const axis = [];
@@ -656,17 +1260,31 @@
     };
 
     for (const k of series)
-      parts.push(`<path d="${path(D.models[k].pred)}" fill="none" stroke="${color(k)}" stroke-width="2" stroke-linejoin="round"/>`);
-    parts.push(`<path d="${path(D.observed)}" fill="none" stroke="var(--observed)" stroke-width="1.25" stroke-linejoin="round"/>`);
+      parts.push(`<path d="${path(D.models[k].pred)}" fill="none" stroke="${color(k)}" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"/>`);
+    parts.push(`<path d="${path(D.observed)}" fill="none" stroke="var(--observed)" stroke-width="1.4" stroke-linejoin="round"/>`);
+
+    // error bar on the 2035 annual mean, one per shown model, side by side when several are shown
+    const barAt = index["2035-07"];
+    if (barAt != null && barAt >= i0 && barAt <= i1) {
+      series.forEach((k, j) => {
+        const f = D.models[k].forecast_2035; if (!f) return;
+        const bx = x(barAt) + (j - (series.length - 1) / 2) * 10;
+        parts.push(`<g stroke="${color(k)}" stroke-width="2" stroke-linecap="round">` +
+          `<line x1="${bx}" x2="${bx}" y1="${y(f.low)}" y2="${y(f.high)}"/>` +
+          `<line x1="${bx - 4}" x2="${bx + 4}" y1="${y(f.low)}" y2="${y(f.low)}"/>` +
+          `<line x1="${bx - 4}" x2="${bx + 4}" y1="${y(f.high)}" y2="${y(f.high)}"/></g>` +
+          `<circle cx="${bx}" cy="${y(f.mean)}" r="3.5" fill="${color(k)}" stroke="var(--canvas)" stroke-width="1.5"/>`);
+      });
+    }
 
     // the selected month
     const s = state.sel;
     if (s >= i0 && s <= i1) {
       parts.push(`<line x1="${x(s)}" x2="${x(s)}" y1="${pad.t}" y2="${H - pad.b}" stroke="var(--text-secondary)" stroke-dasharray="3 3"/>`);
       for (const k of series)
-        parts.push(`<circle cx="${x(s)}" cy="${y(D.models[k].pred[s])}" r="5" fill="${color(k)}" stroke="var(--surface-1)" stroke-width="2"/>`);
+        parts.push(`<circle cx="${x(s)}" cy="${y(D.models[k].pred[s])}" r="5" fill="${color(k)}" stroke="var(--canvas)" stroke-width="2"/>`);
       if (D.observed[s] != null)
-        parts.push(`<circle cx="${x(s)}" cy="${y(D.observed[s])}" r="4.5" fill="var(--observed)" stroke="var(--surface-1)" stroke-width="2"/>`);
+        parts.push(`<circle cx="${x(s)}" cy="${y(D.observed[s])}" r="4.5" fill="var(--observed)" stroke="var(--canvas)" stroke-width="2"/>`);
     }
 
     if (title) {
@@ -703,6 +1321,12 @@
     };
     scan(keys);
     if (!isFinite(lo)) scan(modelKeys); // nothing measured or shown here: scale to the models anyway
+    const barAt = index["2035-07"]; // the 2035 error bars are drawn at mid-year
+    if (barAt != null && barAt >= i0 && barAt <= i1)
+      for (const k of keys) {
+        const f = D.models[k].forecast_2035;
+        if (f) { lo = Math.min(lo, f.low); hi = Math.max(hi, f.high); }
+      }
     const span = hi - lo || 1; lo -= span * 0.05; hi += span * 0.05;
     const base = { W, lo, hi, i0, i1 };
 
@@ -819,11 +1443,352 @@
   function render() { renderPanel(); renderChart(); }
 
   $("subtitle").textContent =
-    `Monthly mean CO₂ at Mauna Loa, ${label(0)} – ${label(lastObs)}. ` +
-    `The models were fitted on ${label(0)} – Dec 2015 only; everything after that is a prediction.`;
+    `Monthly mean CO₂ at Mauna Loa, ${label(0)} – ${label(lastObs)}.`;
   $("note").textContent =
     "Forecasts assume the past pattern simply continues. No model of past CO₂ alone can know future emissions, " +
     "so the further ahead you look, the more the three models disagree. Source: " + D.meta.source + ".";
+
+  // ---------- the story: every number and graph below is computed from the same data ----------
+  const cap1 = (s) => s[0].toUpperCase() + s.slice(1);
+  const fullName = (m) => cap1(FULL_NAMES[m - 1]);
+  const pad2 = (m) => String(m).padStart(2, "0");
+  const ymIdx = (y, m) => index[`${y}-${pad2(m)}`];
+  const mean = (a) => a.reduce((s, v) => s + v, 0) / a.length;
+  const range = (a, b) => Array.from({ length: b - a + 1 }, (_, k) => a + k);
+  const f1 = (v) => fmt(v, 1), f2 = (v) => fmt(v, 2);
+  const obs = D.observed;
+  const firstObs = obs.findIndex((v) => v != null);
+  const lastYear = +months[lastObs].slice(0, 4);
+  const byRmse = modelKeys.slice().sort((a, b) => D.models[a].test_rmse - D.models[b].test_rmse);
+  const bestKey = byRmse[0], best = D.models[bestKey], second = D.models[byRmse[1]];
+  const lin = D.models.linear;
+  const words = (k) => ["no", "one", "two", "three", "four", "five", "six"][k] ?? String(k);
+
+  // measured yearly rise: annual mean minus the previous annual mean, complete years only
+  const annual = new Map();
+  for (let y = +months[firstObs].slice(0, 4); y <= lastYear; y++) {
+    const v = [];
+    for (let m = 1; m <= 12; m++) { const i = ymIdx(y, m); if (i != null && obs[i] != null) v.push(obs[i]); }
+    if (v.length === 12) annual.set(y, mean(v));
+  }
+  const rise = [...annual.keys()].filter((y) => annual.has(y - 1)).map((y) => [y, annual.get(y) - annual.get(y - 1)]);
+  const riseFrom = rise[0][0], riseTo = rise[rise.length - 1][0];
+  const avgRise = (a, b) => mean(rise.filter(([y]) => y >= a && y <= b).map((r) => r[1]));
+  const earlyR = [riseFrom, riseFrom + 9], lateR = [riseTo - 9, riseTo];
+
+  // one year of the fitted seasonal wave, and the measured average for each calendar month
+  const wave = range(1, 12).map((m) => best.pred[ymIdx(lastYear - 1, m)] - best.trend[ymIdx(lastYear - 1, m)]);
+  const peakM = wave.indexOf(Math.max(...wave)) + 1, troughM = wave.indexOf(Math.min(...wave)) + 1;
+  const swing = Math.max(...wave) - Math.min(...wave);
+  const perMonth = Array.from({ length: 12 }, () => []);
+  for (let i = firstObs; i < heldOut; i++) if (obs[i] != null) perMonth[+months[i].slice(5) - 1].push(obs[i] - best.trend[i]);
+  const measWave = perMonth.map(mean);
+  const swingOf = (y) => {
+    const v = range(1, 12).map((m) => ymIdx(y, m)).filter((i) => i != null && obs[i] != null).map((i) => obs[i] - best.trend[i]);
+    return v.length === 12 ? Math.max(...v) - Math.min(...v) : null;
+  };
+  const swingAvg = (a, b) => mean(range(a, b).map(swingOf).filter((v) => v != null));
+
+  // fit quality
+  const r2 = (k) => {
+    const ii = range(firstObs, heldOut - 1).filter((i) => obs[i] != null), mu = mean(ii.map((i) => obs[i]));
+    let sse = 0, sst = 0;
+    for (const i of ii) { sse += (obs[i] - D.models[k].pred[i]) ** 2; sst += (obs[i] - mu) ** 2; }
+    return 1 - sse / sst;
+  };
+  const heldIdx = range(heldOut, lastObs).filter((i) => obs[i] != null);
+  const errPts = (k) => heldIdx.map((i) => [i, D.models[k].pred[i] - obs[i]]);
+  const errR = Object.fromEntries(modelKeys.map((k) => { const e = errPts(k).map((p) => p[1]); return [k, { min: Math.min(...e), max: Math.max(...e) }]; }));
+  const i50 = ymIdx(2050, +months[lastObs].slice(5));
+  const noFall = rise.every(([, g]) => g > 0);
+  const swingE = swingAvg(earlyR[0], earlyR[1]), swingL = swingAvg(lateR[0], lateR[1]);
+  const widened = swingL > swingE * 1.03;
+  const gEarly = avgRise(...earlyR), gLate = avgRise(...lateR);
+  const g1960 = ymIdx(riseFrom, 1) != null ? best.growth[ymIdx(riseFrom, 1)] : null;
+
+  // plain-language values dropped into the prose
+  const V = {
+    n_obs: obs.filter((v) => v != null).length, n_held: heldIdx.length,
+    first_label: label(firstObs), last_label: label(lastObs), train_end: label(heldOut - 1), held_label: label(heldOut),
+    v0: f2(obs[firstObs]), v1: f2(obs[lastObs]), rise: f1(obs[lastObs] - obs[firstObs]),
+    rise_pct: String(Math.round((obs[lastObs] / obs[firstObs] - 1) * 100)),
+    best_label: best.label, slope: f2(lin.params.slope_ppm_per_year),
+    swing: f1(swing), peak_month: fullName(peakM), trough_month: fullName(troughM),
+    g_early: f2(gEarly), g_late: f2(gLate), g_ratio: fmt(gLate / gEarly, 1),
+    g_early_range: `${earlyR[0]}–${earlyR[1]}`, g_late_range: `${lateR[0]}–${lateR[1]}`,
+    g_min: f2(Math.min(...rise.map((r) => r[1]))), g_max: f2(Math.max(...rise.map((r) => r[1]))),
+    g_now: f1(best.growth[lastObs]),
+    no_fall: noFall ? "Year after year the average level is higher than the year before; in this record there is no year in which the annual average fell."
+                    : "In almost every year the average level is higher than the year before.",
+    trend10: f1(best.trend[lastObs] - best.trend[lastObs - 120]),
+    seas_min: signed(Math.min(...wave), 1), seas_max: signed(Math.max(...wave), 1),
+    harmonics: words(best.params.harmonics),
+  };
+  document.querySelectorAll("[data-v]").forEach((el) => { const v = V[el.dataset.v]; if (v != null) el.textContent = v; });
+  $("key-best").style.setProperty("--c", color(bestKey));
+  $("hz-train").textContent = `${label(firstObs)} – ${label(heldOut - 1)}`;
+  $("hz-held").textContent = `${label(heldOut)} – ${label(lastObs)}`;
+  $("foot-src").textContent = `Data: ${D.meta.source}.`;
+  $("foot-split").textContent = `Models fitted on ${label(firstObs)} – ${label(heldOut - 1)}; ${label(heldOut)} onward held out; forecasts to ${label(n - 1)}.`;
+
+  // ---------- KPI tiles ----------
+  const svgi = (d) => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  const ICON = {
+    up: svgi('<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>'),
+    gauge: svgi('<path d="M12 14l4-4"/><path d="M3.3 17a9 9 0 1 1 17.4 0"/>'),
+    wave: svgi('<path d="M2 9c2.5-3 5-3 7.5 0s5 3 7.5 0 3-2 5-1"/><path d="M2 16c2.5-3 5-3 7.5 0s5 3 7.5 0 3-2 5-1"/>'),
+    check: svgi('<path d="M20 6L9 17l-5-5"/>'),
+  };
+  const kpi = (cls, title, icon, val, unit, sub) =>
+    `<div class="kpi ${cls}"><div class="kpi-head"><span class="cap">${title}</span>${icon}</div>` +
+    `<div class="kpi-val">${val}<small>${unit}</small></div><span class="kpi-sub">${sub}</span></div>`;
+  $("kpis").innerHTML =
+    kpi("kpi-trend", "Latest measurement", ICON.up, f2(D.observed[lastObs]), "ppm", `Monthly mean at Mauna Loa · ${label(lastObs)}`) +
+    kpi("kpi-growth", "Yearly rise now", ICON.gauge, `+${f2(best.growth[lastObs])}`, "ppm/yr",
+        g1960 == null ? `${best.label} trend` : `vs +${f2(g1960)} ppm/yr in ${riseFrom} (+${Math.round((best.growth[lastObs] / g1960 - 1) * 100)}% climb)`) +
+    kpi("kpi-seasonal", "Seasonal oscillation", ICON.wave, `~${f1(swing)}`, "ppm", `${fullName(peakM)} peak to ${fullName(troughM)} trough, every year`) +
+    kpi("kpi-error", "Best model held-out RMSE", ICON.check, f2(best.test_rmse), "ppm", `${best.label} · checked on ${heldIdx.length} unseen months`);
+
+  // ---------- takeaways ----------
+  const CHECK = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>`;
+  $("takeaways").innerHTML = [
+    `<b>The late-summer dip is the growing season, not an emissions cut.</b> From spring to early autumn plants absorb CO₂, so the curve falls; it climbs again every winter.`,
+    `<b>A straight line cannot follow this curve.</b> On the held-out months the linear model is off by ${f2(lin.test_rmse)} ppm on average, against ${f2(best.test_rmse)} ppm for the ${best.label} model, because the climb itself keeps getting steeper.`,
+    `<b>The yearly swing is ${widened ? "slowly widening" : "roughly steady"}.</b> Measured minus trend, it was ${f1(swingE)} ppm in ${earlyR[0]}–${earlyR[1]} and ${f1(swingL)} ppm in ${lateR[0]}–${lateR[1]}.` +
+      (widened ? " Research on this effect points to more vigorous plant growth in northern ecosystems." : ""),
+  ].map((t) => `<li>${CHECK}<span>${t}</span></li>`).join("");
+
+  // ---------- model cards, error list, RMSE bars, matrix ----------
+  const rng = (k) => `${signed(errR[k].min, 1)} to ${signed(errR[k].max, 1)}`;
+  const INFO = {
+    linear: {
+      title: "1. Linear", badge: "Baseline model", formula: "y(t) = a + b·t",
+      about: (m) => `One straight line fitted by least squares: it adds ${f2(m.params.slope_ppm_per_year)} ppm every year, whatever the year. It has no seasonal term, so the yearly wiggle is left as error, and it cannot bend as the climb speeds up.`,
+    },
+    polynomial_seasonal: {
+      title: "2. Polynomial + seasonal", badge: "Quadratic + harmonics", formula: "y(t) = c₀ + c₁x + c₂x² + S(t)",
+      about: (m) => `A trend that can curve (a quadratic in x = t/10, with t in years since ${label(firstObs)}) plus S(t): ${words(m.params.harmonics)} sine and cosine pairs with 12-, 6-, 4- and 3-month periods. It follows both the wiggle and the speed-up. On the held-out months its error runs from ${rng("polynomial_seasonal")} ppm.`,
+    },
+    exponential_seasonal: {
+      title: "3. Exponential + seasonal", badge: "Exponential + harmonics", formula: "y(t) = c₀ + a·(e^(r·t) − 1) + S(t)",
+      about: (m) => `The trend is a constant plus an exponential, so the yearly rise itself grows by ${f2(m.params.rate_per_year * 100)}% each year (r = ${fmt(m.params.rate_per_year, 4)}). The same ${words(m.params.harmonics)} harmonics shape the year. Only r is searched non-linearly; the rest is least squares. On the held-out months its error runs from ${rng("exponential_seasonal")} ppm.`,
+    },
+  };
+  const card = (k) => {
+    const m = D.models[k], info = INFO[k] || {}, err = obs[lastObs] == null ? null : m.pred[lastObs] - obs[lastObs];
+    return `<article class="card mcard" style="--m:${color(k)}">` +
+      `<div class="mcard-top"><span class="badge">${k === bestKey ? "Best calibration" : info.badge || "Model"}</span>` +
+      `<span class="err">${err == null ? "" : `${signed(err)} ppm err`}</span></div>` +
+      `<h3>${info.title || m.label}</h3><div class="formula">${info.formula || ""}</div>` +
+      `<p>${info.about ? info.about(m) : ""}</p>` +
+      `<dl class="mstats"><dt>Held-out RMSE</dt><dd>${f2(m.test_rmse)} ppm</dd>` +
+      `<dt>${label(lastObs)} estimate</dt><dd>${f2(m.pred[lastObs])} ppm</dd>` +
+      `<dt>${label(i50)} forecast</dt><dd>${f2(m.pred[i50])} ppm</dd></dl></article>`;
+  };
+  $("model-cards").innerHTML = modelKeys.map(card).join("");
+
+  $("err-key").innerHTML = modelKeys.map((k) => `<li><span class="sw" style="--c:${color(k)}"></span>${D.models[k].label}</li>`).join("");
+  $("err-list").innerHTML = modelKeys.map((k) =>
+    `<li style="--m:${color(k)}"><b>${D.models[k].label}</b><span>${rng(k)} ppm</span></li>`).join("");
+
+  const maxR = Math.max(...modelKeys.flatMap((k) => [D.models[k].train_rmse, D.models[k].test_rmse]));
+  const brow = (name, v, cls) =>
+    `<div class="bar-row"><span>${name}</span><div class="bar-track"><div class="bar-fill ${cls}" style="--w:${(v / maxR * 100).toFixed(1)}%"></div></div><span class="bar-val">${f2(v)}</span></div>`;
+  $("rmse-bars").innerHTML = modelKeys.map((k) =>
+    `<div class="bar-group" style="--m:${color(k)}"><span class="bar-name">${D.models[k].label}</span>` +
+    brow("Fit months", D.models[k].train_rmse, "fit") + brow("Held out", D.models[k].test_rmse, "") + `</div>`).join("");
+  const byTrain = modelKeys.slice().sort((a, b) => D.models[a].train_rmse - D.models[b].train_rmse)[0];
+  $("rmse-note").textContent =
+    `${second.label} misses the held-out months ${fmt(second.test_rmse / best.test_rmse, 1)}× as far as ${best.label}.` +
+    (byTrain !== bestKey ? ` Yet on the fitting months ${D.models[byTrain].label} is slightly closer (${f2(D.models[byTrain].train_rmse)} vs ${f2(best.train_rmse)} ppm): a good fit to the past does not guarantee good predictions.` : "");
+
+  $("th-est").textContent = `${label(lastObs)} estimate`;
+  $("th-50").textContent = `${label(i50)} projection`;
+  $("bar-note").textContent = `${D.meta.error_bar_note}.`;
+  $("matrix-body").innerHTML = modelKeys.map((k) => {
+    const m = D.models[k], f = m.forecast_2035;
+    return `<tr class="${k === bestKey ? "best" : ""}" style="--m:${color(k)}"><td style="color:${color(k)}"><span class="swatch" style="background:${color(k)}"></span>${m.label}</td>` +
+      `<td class="formula-cell">${(INFO[k] || {}).formula || ""}</td><td class="num">${fmt(r2(k), 4)}</td><td class="num">${f2(m.test_rmse)} ppm</td>` +
+      `<td class="num">${f2(m.pred[lastObs])} ppm</td><td class="num">${f2(m.pred[i50])} ppm</td>` +
+      `<td class="num">${f ? `${f1(f.mean)} ± ${f1(f.error_bar)} ppm` : "–"}</td></tr>`;
+  }).join("");
+
+  // ---------- a small flat SVG plot, themed by CSS variables ----------
+  function decadeTicks(i0, i1, stepYears) {
+    const t = [];
+    for (let y = Math.ceil(yearOf(i0) / stepYears) * stepYears; y <= yearOf(i1); y += stepYears) {
+      const i = ymIdx(y, 1); if (i != null && i >= i0 && i <= i1) t.push({ x: i, text: String(y) });
+    }
+    return t;
+  }
+  const monthTicks = (i0, i1) => (W) => decadeTicks(i0, i1, niceStep((i1 - i0) / 12, W < 420 ? 4 : 8));
+  const yearTicks = (y0, y1) => (W) => {
+    const step = niceStep(y1 - y0, W < 420 ? 4 : 8), t = [];
+    for (let y = Math.ceil(y0 / step) * step; y <= y1; y += step) t.push({ x: y, text: String(y) });
+    return t;
+  };
+  const niceRange = (lo, hi, step) => [Math.floor(lo / step) * step, Math.ceil(hi / step) * step];
+  const pts = (arr, i0, i1) => range(i0, i1).map((i) => (arr[i] == null ? null : [i, arr[i]]));
+
+  function plot(el, o) {
+    let lastW = 0;
+    const tip = document.createElement("div");
+    tip.className = "tooltip";
+    const draw = () => {
+      const W = Math.max(240, el.clientWidth - 16), H = o.height || 240;
+      const pad = { l: o.padL ?? 40, r: 14, t: o.title ? 28 : 12, b: o.xTicks ? 24 : 8 };
+      const [x0, x1] = o.x, [y0, y1] = o.y;
+      const X = (v) => pad.l + ((v - x0) / (x1 - x0)) * (W - pad.l - pad.r);
+      const Y = (v) => pad.t + (1 - (v - y0) / (y1 - y0)) * (H - pad.t - pad.b);
+      const P = [];
+      for (const b of o.bands || []) {
+        P.push(`<rect x="${X(b.a)}" y="${pad.t}" width="${X(b.b) - X(b.a)}" height="${H - pad.t - pad.b}" fill="${b.fill}"/>`);
+        if (b.text && X(b.b) - X(b.a) > 56) P.push(`<text class="band-label" x="${X(b.a) + 6}" y="${H - pad.b - 8}">${b.text}</text>`);
+      }
+      const axis = [];
+      for (let k = Math.ceil(y0 / o.yStep - 1e-9); k * o.yStep <= y1 + 1e-9; k++) {
+        const v = k * o.yStep;
+        axis.push(`<line x1="${pad.l}" x2="${W - pad.r}" y1="${Y(v)}" y2="${Y(v)}"/>`,
+                  `<text x="${pad.l - 8}" y="${Y(v) + 4}" text-anchor="end">${o.yFmt ? o.yFmt(v) : v}</text>`);
+      }
+      const ticks = typeof o.xTicks === "function" ? o.xTicks(W) : o.xTicks || [];
+      for (const t of ticks) axis.push(`<text x="${X(t.x)}" y="${H - 6}" text-anchor="middle">${t.text}</text>`);
+      P.push(`<g class="axis">${axis.join("")}</g>`);
+      if (y0 < 0 && y1 > 0) P.push(`<line class="zero" x1="${pad.l}" x2="${W - pad.r}" y1="${Y(0)}" y2="${Y(0)}"/>`);
+
+      for (const s of o.series) {
+        if (s.kind === "bars") {
+          const bw = Math.max(1.5, ((W - pad.l - pad.r) / (x1 - x0)) * (o.barW ?? 0.7)), base = Y(Math.max(y0, Math.min(y1, 0)));
+          for (const [x, y] of s.pts)
+            P.push(`<rect x="${X(x) - bw / 2}" y="${Math.min(Y(y), base)}" width="${bw}" height="${Math.abs(Y(y) - base)}" fill="${s.color}" fill-opacity="${s.opacity ?? 1}" rx="1"/>`);
+        } else {
+          let d = "", pen = false;
+          for (const p of s.pts) {
+            if (p == null) { pen = false; continue; }
+            d += `${pen ? "L" : "M"}${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`; pen = true;
+          }
+          P.push(`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.width ?? 2.4}" stroke-linejoin="round" stroke-linecap="round"${s.dash ? ` stroke-dasharray="${s.dash}"` : ""}/>`);
+        }
+      }
+      for (const a of o.notes || []) {
+        // labels flip to the inside when they would run off either edge of the plot
+        const nx = X(a.x), half = String(a.text).length * 3.3;
+        let anchor = a.anchor || "start", tx = nx + (a.dx ?? 8);
+        if (anchor === "middle" && nx + half > W - 4) { anchor = "end"; tx = Math.min(nx + 6, W - 4); }
+        else if (anchor === "middle" && nx - half < pad.l) { anchor = "start"; tx = Math.max(nx - 6, pad.l); }
+        P.push(`<circle cx="${nx}" cy="${Y(a.y)}" r="3.5" fill="${a.color || "var(--text-primary)"}" stroke="var(--canvas)" stroke-width="1.5"/>`,
+               `<text class="note-t" x="${tx}" y="${Y(a.y) + (a.dy ?? -8)}" text-anchor="${anchor}">${a.text}</text>`);
+      }
+      if (o.title) P.push(`<text class="p-title" x="${pad.l}" y="14">${o.title}</text>`);
+      P.push(`<line class="p-hover" y1="${pad.t}" y2="${H - pad.b}" visibility="hidden"/>`,
+             `<rect class="p-hit" x="${pad.l}" y="${pad.t}" width="${W - pad.l - pad.r}" height="${H - pad.t - pad.b}" fill="transparent" style="touch-action:pan-y"/>`);
+      el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${o.label}">${P.join("")}</svg>`;
+      el.appendChild(tip);
+
+      const svg = el.querySelector("svg"), line = el.querySelector(".p-hover"), hit = el.querySelector(".p-hit");
+      const look = o.series.filter((s) => s.tip !== false).map((s) => ({ s, map: new Map(s.pts.filter(Boolean).map((p) => [p[0], p[1]])) }));
+      const off = () => { tip.style.display = "none"; line.setAttribute("visibility", "hidden"); };
+      hit.addEventListener("pointerleave", off);
+      hit.addEventListener("pointermove", (e) => {
+        const r = svg.getBoundingClientRect(), px = ((e.clientX - r.left) / r.width) * W;
+        const x = Math.round(x0 + ((px - pad.l) / (W - pad.l - pad.r)) * (x1 - x0));
+        const rows = look.filter(({ map }) => map.has(x)).map(({ s, map }) =>
+          `<div class="tt-row"><span class="swatch" style="background:${s.color}"></span>${s.name}<b>${(o.vFmt || ((v) => `${f2(v)} ppm`))(map.get(x))}</b></div>`);
+        if (!rows.length) { off(); return; }
+        line.setAttribute("x1", X(x)); line.setAttribute("x2", X(x)); line.setAttribute("visibility", "visible");
+        tip.innerHTML = `<div style="font-weight:600;margin-bottom:4px">${o.xLabel(x)}</div>${rows.join("")}`;
+        tip.style.display = "block";
+        const box = el.getBoundingClientRect(), sc = r.width / W, px2 = r.left - box.left + X(x) * sc;
+        let left = px2 + 14;
+        if (left + tip.offsetWidth > box.width) left = px2 - tip.offsetWidth - 14;
+        tip.style.left = `${left}px`; tip.style.top = `${r.top - box.top + pad.t * sc + 6}px`;
+      });
+    };
+    new ResizeObserver(() => { if (el.clientWidth !== lastW) { lastW = el.clientWidth; draw(); } }).observe(el);
+  }
+
+  const ppm = (v) => `${f2(v)} ppm`;
+  const sppm = (v) => `${signed(v)} ppm`;
+
+  // 1. the whole record
+  plot($("p-record"), {
+    label: `Measured CO2 at Mauna Loa in ppm from ${label(firstObs)} to ${label(lastObs)}, rising from ${f1(obs[firstObs])} to ${f1(obs[lastObs])}`,
+    title: "CO₂ (ppm)", height: 300, x: [0, lastObs], y: [300, 440], yStep: 20,
+    xTicks: monthTicks(0, lastObs), xLabel: label,
+    bands: [{ a: heldOut, b: lastObs, fill: "var(--band-heldout)", text: "Held out" }],
+    series: [
+      { name: "Trend", color: "var(--accent)", width: 2, dash: "6 4", pts: pts(best.trend, 0, lastObs) },
+      { name: "Measured", color: "var(--observed)", width: 1.5, pts: pts(obs, 0, lastObs) },
+    ],
+    notes: [
+      { x: firstObs, y: obs[firstObs], text: `${f1(obs[firstObs])} ppm`, dx: 8, dy: -10 },
+      { x: lastObs, y: obs[lastObs], text: `${f1(obs[lastObs])} ppm`, anchor: "end", dx: -8, dy: -12 },
+    ],
+  });
+
+  // 2. how fast it rises, measured and modelled
+  plot($("p-growth"), {
+    label: `Yearly rise in CO2 in ppm per year from ${riseFrom} to ${riseTo}, growing from about ${f1(gEarly)} to ${f1(gLate)}, against the constant rate of the linear model`,
+    title: "Rise per year (ppm)", height: 280, x: [riseFrom - 0.8, riseTo + 0.8], y: [0, 4], yStep: 1, barW: 0.7,
+    xTicks: yearTicks(riseFrom, riseTo), xLabel: String, vFmt: (v) => `${f2(v)} ppm/yr`,
+    series: [
+      { name: "Measured", kind: "bars", color: "var(--accent)", opacity: 0.55, pts: rise },
+      { name: lin.label, color: color("linear"), width: 2.4, dash: "7 5", pts: rise.map(([y]) => [y, lin.growth[ymIdx(y, 7)]]) },
+      { name: best.label, color: color(bestKey), width: 2.8, pts: rise.map(([y]) => [y, best.growth[ymIdx(y, 7)]]) },
+    ],
+  });
+
+  // 3. the same ten years pulled apart: measured, trend, seasonal
+  const iA = Math.max(firstObs, lastObs - 119), iB = lastObs;
+  const seasAll = D.observed.map((_, i) => best.pred[i] - best.trend[i]);
+  const [dLo, dHi] = niceRange(Math.min(...range(iA, iB).map((i) => Math.min(obs[i] ?? Infinity, best.trend[i]))), Math.max(...range(iA, iB).map((i) => Math.max(obs[i] ?? -Infinity, best.trend[i]))), 10);
+  const dec = { x: [iA, iB], xLabel: label, yStep: 10, padL: 44 };
+  plot($("p-dec-obs"), { ...dec, y: [dLo, dHi], height: 170, title: "Measured (ppm)",
+    label: "Measured CO2 over the last ten years, rising with a yearly zig-zag",
+    series: [{ name: "Trend", color: "var(--accent)", width: 2, dash: "6 4", pts: pts(best.trend, iA, iB) }, { name: "Measured", color: "var(--observed)", width: 1.6, pts: pts(obs, iA, iB) }] });
+  plot($("p-dec-trend"), { ...dec, y: [dLo, dHi], height: 150, title: "Trend: the escalator (ppm)",
+    label: `The trend alone over the last ten years, climbing ${f1(best.trend[iB] - best.trend[iA])} ppm`,
+    series: [{ name: "Trend", color: "var(--accent)", width: 3, pts: pts(best.trend, iA, iB) }],
+    notes: [{ x: iA, y: best.trend[iA], text: `${f1(best.trend[iA])}`, dx: 8, dy: -10 }, { x: iB, y: best.trend[iB], text: `${f1(best.trend[iB])}`, anchor: "end", dx: -8, dy: -12 }] });
+  const pk = ymIdx(lastYear - 1, peakM), tr = ymIdx(lastYear - 1, troughM);
+  plot($("p-dec-seas"), { ...dec, y: [-4, 4], yStep: 2, height: 180, title: "Seasonal: the jump (ppm)", xTicks: monthTicks(iA, iB),
+    label: `The seasonal part alone over the last ten years, swinging between ${signed(Math.min(...wave), 1)} and ${signed(Math.max(...wave), 1)} ppm each year`,
+    vFmt: sppm, series: [{ name: "Seasonal", color: "var(--c-seasonal)", width: 2.4, pts: pts(seasAll, iA, iB) }],
+    notes: [{ x: pk, y: seasAll[pk], text: `${fullName(peakM)} ${signed(seasAll[pk], 1)}`, anchor: "middle", dx: 0, dy: -10, color: "var(--c-seasonal)" },
+            { x: tr, y: seasAll[tr], text: `${fullName(troughM)} ${signed(seasAll[tr], 1)}`, anchor: "middle", dx: 0, dy: 18, color: "var(--c-seasonal)" }] });
+
+  // 4. the average yearly wave, month by month
+  plot($("p-month"), {
+    label: `Average seasonal part for each calendar month: peak in ${fullName(peakM)}, trough in ${fullName(troughM)}`,
+    title: "Seasonal part (ppm)", height: 260, x: [0.4, 12.6], y: [-4, 4], yStep: 2, barW: 0.62,
+    xTicks: (W) => range(1, 12).filter((m) => W >= 420 || m % 2 === 1).map((m) => ({ x: m, text: MONTH_NAMES[m - 1] })),
+    xLabel: fullName, vFmt: sppm,
+    series: [
+      { name: "Measured average", kind: "bars", color: "var(--c-seasonal)", opacity: 0.55, pts: measWave.map((v, k) => [k + 1, v]) },
+      { name: "Fitted wave", color: color(bestKey), width: 2.8, pts: wave.map((v, k) => [k + 1, v]) },
+    ],
+    notes: [{ x: peakM, y: wave[peakM - 1], text: signed(wave[peakM - 1], 1), anchor: "middle", dx: 0, dy: -10, color: color(bestKey) },
+            { x: troughM, y: wave[troughM - 1], text: signed(wave[troughM - 1], 1), anchor: "middle", dx: 0, dy: 18, color: color(bestKey) }],
+  });
+
+  // 5. how each model misses the held-out months
+  const errSeries = (keys) => keys.map((k) => ({ name: D.models[k].label, color: color(k), width: 2.4, pts: errPts(k) }));
+  const [eLo, eHi] = niceRange(Math.min(...modelKeys.map((k) => errR[k].min)), Math.max(0.1, ...modelKeys.map((k) => errR[k].max)), 4);
+  const errBase = { x: [heldOut, lastObs], xLabel: label, vFmt: sppm, padL: 44 };
+  plot($("p-err-all"), { ...errBase, y: [eLo, eHi], yStep: 4, height: 220, title: "All three models (ppm)",
+    label: "Prediction minus measurement on the held-out months for all three models", xTicks: monthTicks(heldOut, lastObs), series: errSeries(modelKeys) });
+  const zoomKeys = modelKeys.filter((k) => k !== "linear");
+  const [zLo, zHi] = niceRange(Math.min(...zoomKeys.map((k) => errR[k].min)), Math.max(0.1, ...zoomKeys.map((k) => errR[k].max)), 1);
+  plot($("p-err-zoom"), { ...errBase, y: [zLo, zHi], yStep: 1, height: 200, title: "Zoom: linear removed (ppm)",
+    label: "The same errors without the linear model, so the polynomial and exponential models can be compared", xTicks: monthTicks(heldOut, lastObs), series: errSeries(zoomKeys) });
+
+  // ---------- page navigation: mark the section being read ----------
+  const navLinks = [...document.querySelectorAll(".nav a")];
+  const spy = new IntersectionObserver((entries) => entries.forEach((en) => {
+    if (!en.isIntersecting) return;
+    navLinks.forEach((a) => a.getAttribute("href") === `#${en.target.id}` ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current"));
+  }), { rootMargin: "-45% 0px -50% 0px" });
+  navLinks.forEach((a) => { const s = document.querySelector(a.getAttribute("href")); if (s) spy.observe(s); });
 
   // Re-render only on width changes; the chart's own height change would otherwise retrigger it
   let lastWidth = 0;

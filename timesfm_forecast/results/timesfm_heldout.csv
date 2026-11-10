@@ -1,0 +1,5 @@
+Model,Parameters fitted here,Test MAE (ppm),Test RMSE (ppm),Residual SD (ppm)
+Exponential + seasonal,11,0.6450,0.7624,0.5502
+Polynomial + seasonal,11,2.0728,2.2023,0.7470
+TimesFM 3.0 (zero-shot),0,2.7864,3.2204,1.6269
+Linear,2,13.2018,13.7391,3.8193

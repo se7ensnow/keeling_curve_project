@@ -1,0 +1,1691 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Keeling Curve: Presentation</title>
+<script>try { const t = localStorage.getItem("kc-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@500..700&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..700&display=swap">
+<style>
+  /* The presentation: one section per slide of the visual plan, in the same design as the explorer (index.html).
+     Colours are tokens, so the SVG graphs, which draw with var(--m-*) / var(--observed), re-theme by themselves.
+     Every number on the page comes from data.js and presentation-data.js (python scripts/export_presentation.py). */
+  :root {
+    color-scheme: light;
+    --font-display: Geist, Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --surface-0: #eef2f6;
+    --surface-1: #ffffff;
+    --surface-low: #edf1f5;
+    --surface-high: #e4eaf0;
+    --seg-on: #ffffff;
+    --canvas: #f4f7fa;
+    --border: #c3ccd3;
+    --card-edge: #dde3e9;
+    --grid: #e3e8ed;
+    --text-primary: #171c20;
+    --text-secondary: #3c494e;
+    --text-muted: #5b686e;
+    --observed: #171c20;
+    --accent: #00677f;
+    --on-accent: #ffffff;
+    --focus: #00677f;
+    --secondary: #006d5f;
+    --c-seasonal: #b0184f;
+    --band-heldout: rgba(0, 103, 127, 0.07);
+    --m-linear: #7b1fa2;
+    --m-polynomial_seasonal: #a93e05;
+    --m-exponential_seasonal: #006d5f;
+    --heat: #63b3c6;
+    --heat-text: #171c20;
+    --shadow-card: 0 1px 2px rgba(23, 28, 32, 0.06), 0 4px 12px rgba(23, 28, 32, 0.06);
+    --shadow-pop: 0 8px 24px rgba(23, 28, 32, 0.18);
+    --shadow-bar: 0 1px 6px rgba(23, 28, 32, 0.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --surface-0: #101419;
+      --surface-1: #1c2025;
+      --surface-low: #181c21;
+      --surface-high: #262a30;
+      --seg-on: #31353b;
+      --canvas: #0a0f13;
+      --border: #3c494e;
+      --card-edge: transparent;
+      --grid: #1c2025;
+      --text-primary: #e0e2ea;
+      --text-secondary: #bbc9cf;
+      --text-muted: #859399;
+      --observed: #f4f6fa;
+      --accent: #a5e7ff;
+      --on-accent: #04222b;
+      --focus: #47d6ff;
+      --secondary: #14b88a;
+      --c-seasonal: #ff8fb1;
+      --band-heldout: rgba(71, 214, 255, 0.07);
+      --m-linear: #b388ff;
+      --m-polynomial_seasonal: #ffb000;
+      --m-exponential_seasonal: #14b88a;
+      --heat: #187d99;
+      --heat-text: #f4f6fa;
+      --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 16px rgba(0, 0, 0, 0.28);
+      --shadow-pop: 0 8px 28px rgba(0, 0, 0, 0.55);
+      --shadow-bar: 0 1px 8px rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface-0: #101419;
+    --surface-1: #1c2025;
+    --surface-low: #181c21;
+    --surface-high: #262a30;
+    --seg-on: #31353b;
+    --canvas: #0a0f13;
+    --border: #3c494e;
+    --card-edge: transparent;
+    --grid: #1c2025;
+    --text-primary: #e0e2ea;
+    --text-secondary: #bbc9cf;
+    --text-muted: #859399;
+    --observed: #f4f6fa;
+    --accent: #a5e7ff;
+    --on-accent: #04222b;
+    --focus: #47d6ff;
+    --secondary: #14b88a;
+    --c-seasonal: #ff8fb1;
+    --band-heldout: rgba(71, 214, 255, 0.07);
+    --m-linear: #b388ff;
+    --m-polynomial_seasonal: #ffb000;
+    --m-exponential_seasonal: #14b88a;
+    --heat: #187d99;
+    --heat-text: #f4f6fa;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 16px rgba(0, 0, 0, 0.28);
+    --shadow-pop: 0 8px 28px rgba(0, 0, 0, 0.55);
+    --shadow-bar: 0 1px 8px rgba(0, 0, 0, 0.35);
+  }
+  :root {
+    --rail-w: 17rem;
+    --soft: color-mix(in srgb, var(--border) 55%, transparent);
+    --known: var(--accent);
+    --unk: var(--m-polynomial_seasonal);
+    --plot-h: clamp(300px, calc(100vh - 18.5rem), 700px);
+  }
+
+  * { box-sizing: border-box; }
+  /* text and graph labels grow with the screen, so the page also reads from the back of a room */
+  html { font-size: clamp(15px, 0.45vw + 9.2px, 20px); background: var(--surface-0); }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+  body {
+    margin: 0; min-width: 1080px; background: var(--surface-0); color: var(--text-primary);
+    font: 400 0.95rem/1.6 var(--font-sans); -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; }
+  figure { margin: 0; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .cap { margin: 0; font: 600 0.68rem/1.3 var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary); }
+  .lbl { font: 400 0.75rem/1.3 var(--font-mono); text-transform: uppercase; color: var(--text-secondary); }
+  code { font: 500 0.92em var(--font-mono); padding: 0.05em 0.3em; border-radius: 3px; background: var(--surface-high); }
+
+  /* left menu */
+  .rail {
+    position: fixed; inset: 0 auto 0 0; z-index: 30; width: var(--rail-w); display: flex; flex-direction: column;
+    background: var(--surface-1); border-right: 1px solid var(--card-edge); box-shadow: var(--shadow-bar);
+    transition: transform 0.25s ease;
+  }
+  .rail-brand { display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1rem 0.6rem; color: inherit; text-decoration: none; }
+  .brand-mark {
+    width: 2rem; height: 2rem; flex: none; border-radius: 8px; display: grid; place-items: center;
+    color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--surface-1));
+  }
+  .brand-name { display: block; font: 600 1.05rem/1.15 var(--font-display); letter-spacing: -0.01em; }
+  .brand-sub { display: block; margin-top: 2px; font: 600 0.64rem/1.3 var(--font-sans); letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-secondary); }
+  .rail-nav { position: relative; flex: 1; min-height: 0; overflow-y: auto; padding: 0 0.5rem 0.75rem; scrollbar-width: thin; }
+  .rail-nav ol { list-style: none; margin: 0; padding: 0; }
+  .rail-nav .grp { margin: 0.75rem 0.5rem 0.2rem; font: 600 0.6rem/1.3 var(--font-sans); letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+  .rail-nav a {
+    display: grid; grid-template-columns: 1.5rem minmax(0, 1fr); align-items: baseline; gap: 0.35rem;
+    padding: 0.3rem 0.5rem; border-radius: 4px; color: var(--text-secondary); text-decoration: none; font: 400 0.82rem/1.3 var(--font-sans);
+  }
+  .rail-nav a .n { font: 500 0.68rem/1 var(--font-mono); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .rail-nav a:hover { background: var(--surface-low); color: var(--text-primary); }
+  .rail-nav a[aria-current="true"] {
+    background: color-mix(in srgb, var(--accent) 13%, var(--surface-1)); color: var(--text-primary); font-weight: 600;
+    box-shadow: inset 2px 0 0 var(--accent);
+  }
+  .rail-nav a[aria-current="true"] .n { color: var(--accent); }
+  .rail-foot { display: flex; flex-direction: column; gap: 0.5rem; padding: 0.75rem; border-top: 1px solid var(--soft); }
+  .pager { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+  .pager span { font: 500 0.78rem/1 var(--font-mono); color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+  .toggles { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .rail-hint { margin: 0; font: 400 0.66rem/1.4 var(--font-mono); color: var(--text-muted); }
+  .rail-show {
+    position: fixed; left: calc(var(--rail-w) + 0.6rem); top: 0.6rem; z-index: 31; display: grid; transition: left 0.25s ease; width: 2.2rem; height: 2.2rem; place-items: center;
+    border: 0; border-radius: 6px; background: var(--surface-1); color: var(--text-primary); box-shadow: var(--shadow-pop); cursor: pointer;
+  }
+  body.rail-off .rail { transform: translateX(-102%); }
+  body.rail-off .rail-show { left: 0.6rem; }
+  body.rail-off .deck { margin-left: 0; }
+
+  /* buttons */
+  .btn-main {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.5rem 0.9rem; border: 0; border-radius: 4px;
+    background: var(--accent); color: var(--on-accent); font: 600 0.82rem/1.2 var(--font-sans); text-decoration: none; cursor: pointer;
+  }
+  .btn-main:hover { filter: brightness(1.08); }
+  .btn-ghost {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.4rem 0.7rem; border: 0; border-radius: 4px;
+    background: var(--surface-low); color: var(--text-secondary); font: 500 0.75rem/1.2 var(--font-sans); cursor: pointer;
+  }
+  .btn-ghost:hover:not(:disabled) { background: var(--surface-high); color: var(--text-primary); }
+  .btn-ghost:disabled { opacity: 0.45; cursor: default; }
+  .btn-ghost[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 18%, var(--surface-1)); color: var(--text-primary); }
+  .seg { display: inline-flex; gap: 2px; padding: 2px; background: var(--surface-low); border-radius: 4px; }
+  .seg button {
+    min-width: 2.4rem; padding: 0.4rem 0.7rem; border: 0; border-radius: 2px; background: transparent; color: var(--text-secondary);
+    font: 500 0.85rem/1.2 var(--font-mono); cursor: pointer;
+  }
+  .seg button:hover { color: var(--text-primary); }
+  .seg button[aria-pressed="true"] { background: var(--seg-on); color: var(--m, var(--text-primary)); font-weight: 700; box-shadow: inset 0 -2px 0 var(--m, var(--accent)); }
+  .tool-group { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+
+  /* slides */
+  .deck { margin-left: var(--rail-w); transition: margin-left 0.25s ease; }
+  .slide {
+    min-height: 100vh; max-width: 1720px; margin-inline: auto; display: flex; flex-direction: column; gap: 1.1rem;
+    padding: 2rem clamp(1.5rem, 3vw, 3.5rem) 2.25rem;
+  }
+  .slide-head { display: flex; flex-direction: column; gap: 0.15rem; max-width: 62rem; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 0.5rem; font: 600 0.68rem/1.3 var(--font-sans); letter-spacing: 0.1em; text-transform: uppercase; color: var(--secondary); }
+  .eyebrow b { padding: 0.1rem 0.4rem; border-radius: 2px; background: var(--surface-high); color: var(--accent); font: 600 0.7rem/1.3 var(--font-mono); letter-spacing: 0; }
+  .slide-title { margin: 0; font: 600 clamp(1.6rem, 2.3vw, 2.2rem)/1.2 var(--font-display); letter-spacing: -0.02em; }
+  .lede { margin: 0.15rem 0 0; font: 400 1rem/1.5 var(--font-sans); color: var(--text-secondary); }
+  .card { background: var(--surface-1); border: 1px solid var(--card-edge); border-radius: 8px; box-shadow: var(--shadow-card); padding: 1.1rem 1.25rem; min-width: 0; }
+  .card-title { margin: 0; font: 600 1.05rem/1.3 var(--font-display); letter-spacing: -0.01em; }
+  .split { display: grid; grid-template-columns: minmax(0, 1fr) clamp(19rem, 27vw, 25rem); gap: 1rem; align-items: start; }
+  .duo { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 1rem; align-items: start; }
+  .duo .chart-top { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
+  .side { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+  .panel { display: flex; flex-direction: column; gap: 0.6rem; }
+  .panel-text { margin: 0; font: 400 0.88rem/1.5 var(--font-sans); color: var(--text-secondary); }
+  .panel-text b { color: var(--text-primary); font-weight: 600; }
+  .fine { font-size: 0.76rem; line-height: 1.45; color: var(--text-muted); }
+  .chart-card { display: flex; flex-direction: column; gap: 0.7rem; }
+  .chart-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; min-height: 2rem; }
+  .hint { margin: 0; font: 400 0.72rem/1.4 var(--font-sans); color: var(--text-muted); }
+  .source { font: 400 0.72rem/1.4 var(--font-sans); color: var(--text-muted); }
+  .stack { --plot-h: clamp(280px, calc(100vh - 25.5rem), 640px); }
+  .stack.two-rows { --plot-h: clamp(250px, calc(100vh - 29.5rem), 620px); }   /* formula row plus a row of numbers */
+  .strip { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem 1.5rem; }
+  .strip .eq { flex: none; }
+  .strip-side { display: flex; flex-direction: column; align-items: flex-start; gap: 0.6rem; }
+  .chips .off { opacity: 0.45; }
+  .takeaway { margin: 0; font: 400 0.95rem/1.5 var(--font-sans); color: var(--text-secondary); }
+  .takeaway b { color: var(--text-primary); font-weight: 600; }
+
+  /* key and value lists */
+  .key { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; margin: 0; padding: 0; list-style: none; font: 400 0.75rem/1.3 var(--font-mono); color: var(--text-secondary); }
+  .key li { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .sw { display: inline-block; flex: none; width: 0.9rem; height: 3px; border-radius: 2px; background: var(--c, currentColor); }
+  .sw.dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; }
+  .sw.dash { height: 0; background: none; border-top: 2px dashed var(--c, currentColor); border-radius: 0; }
+  .sw.box { width: 0.7rem; height: 0.7rem; border-radius: 2px; }
+  .kv { display: flex; flex-direction: column; gap: 0.3rem; margin: 0; }
+  .kv > div { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+  .kv dt { font: 400 0.82rem/1.4 var(--font-sans); color: var(--text-secondary); }
+  .kv dd { margin: 0; font: 600 0.85rem/1.4 var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+  .kv small { display: block; font: 400 0.72rem/1.3 var(--font-sans); color: var(--text-muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0; }
+  .chips > div { display: flex; flex-direction: column; gap: 1px; padding: 0.35rem 0.65rem; border-radius: 4px; background: var(--surface-low); }
+  .chips dt { font: 400 0.7rem/1.3 var(--font-mono); color: var(--text-secondary); }
+  .chips dd { margin: 0; font: 600 0.9rem/1.3 var(--font-mono); font-variant-numeric: tabular-nums; }
+  .chips .lead dd { color: var(--m, var(--accent)); font-size: 1.05rem; }
+  .coef { display: flex; flex-direction: column; gap: 0.55rem; margin: 0; }
+  .coef dt { font: 600 0.95rem/1.3 var(--font-mono); font-variant-numeric: tabular-nums; }
+  .coef dt b { color: var(--m-linear); }
+  .coef dd { margin: 0; font: 400 0.82rem/1.4 var(--font-sans); color: var(--text-secondary); }
+
+  /* formulas (MathML) */
+  math { font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", math; text-transform: none; letter-spacing: normal; }
+  .eq { margin: 0; padding: 0.75rem 1rem; border-radius: 6px; background: var(--canvas); color: var(--text-primary); overflow-x: auto; overflow-y: hidden; }
+  .eq math { font-size: 1.2rem; }
+  .eq.big math { font-size: 1.75rem; }
+  .eq-lines { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; gap: 0.2rem 0.45rem; justify-items: start; }
+  .eq-lines math { font-size: 1.12rem; }
+  .known { color: var(--known); }
+  .unk { color: var(--unk); }
+
+  /* graphs */
+  .plot { position: relative; height: var(--plot-h); min-height: 260px; border-radius: 8px; background: var(--canvas); overflow: hidden; user-select: none; touch-action: pan-y; }
+  .plot svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .plot.zoomable { cursor: crosshair; }
+  .pl-over { pointer-events: none; }
+  .axis text { fill: var(--text-muted); font: 400 0.72rem var(--font-mono); }
+  .axis line { stroke: var(--grid); }
+  .p-title { fill: var(--text-secondary); font: 600 0.72rem var(--font-mono); letter-spacing: 0.04em; }
+  .band-label { fill: var(--text-muted); font: 500 0.64rem var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; }
+  .note-t { fill: var(--text-primary); font: 600 0.74rem var(--font-mono); paint-order: stroke; stroke: var(--canvas); stroke-width: 3.5px; stroke-linejoin: round; }
+  .note-t.soft { fill: var(--text-secondary); font-weight: 500; }
+  .zero { stroke: var(--text-muted); stroke-opacity: 0.85; }
+  .hover-line { stroke: var(--text-muted); }
+  .brush { fill: var(--accent); fill-opacity: 0.15; stroke: var(--accent); stroke-width: 1; }
+  .zoom-reset {
+    position: absolute; top: 0.5rem; right: 0.5rem; z-index: 4; padding: 0.3rem 0.6rem; border: 0; border-radius: 4px;
+    background: var(--surface-high); color: var(--text-primary); font: 500 0.72rem/1.2 var(--font-sans); cursor: pointer; box-shadow: var(--shadow-card);
+  }
+  .tooltip {
+    position: absolute; z-index: 5; display: none; pointer-events: none; white-space: nowrap; padding: 0.5rem 0.7rem;
+    background: var(--surface-high); border: 1px solid var(--card-edge); border-radius: 8px; box-shadow: var(--shadow-pop);
+    color: var(--text-primary); font: 400 0.75rem/1.5 var(--font-mono); font-variant-numeric: tabular-nums;
+  }
+  .tt-title { font-weight: 600; margin-bottom: 0.2rem; }
+  .tt-row { display: flex; align-items: center; gap: 0.4rem; }
+  .tt-row b { margin-left: auto; padding-left: 0.9rem; font-weight: 600; }
+  .tt-row .sw { width: 0.6rem; height: 0.6rem; border-radius: 50%; }
+  .tt-note { margin-top: 0.2rem; color: var(--text-secondary); }
+
+  /* slide 1 */
+  .slide.title {
+    max-width: none; justify-content: flex-end; gap: 1rem; padding: 3rem clamp(2rem, 5vw, 5rem) 3.5rem;
+    color-scheme: dark; color: #eef1f6; --text-secondary: #ccd6db; --text-muted: #9fadb3; --accent: #a5e7ff; --border: rgba(255, 255, 255, 0.18);
+    --surface-high: rgba(16, 20, 25, 0.6);
+    background:
+      linear-gradient(0deg, rgba(7, 11, 16, 0.92) 0%, rgba(7, 11, 16, 0.55) 34%, rgba(7, 11, 16, 0.08) 66%),
+      linear-gradient(90deg, rgba(7, 11, 16, 0.55) 0%, rgba(7, 11, 16, 0) 60%),
+      url("assets/observatory-hero.jpg") center 62% / cover no-repeat, #0a0f13;
+  }
+  .kicker {
+    align-self: flex-start; margin: 0; padding: 0.25rem 0.6rem; border-radius: 2px; background: rgba(16, 20, 25, 0.6); color: #a5e7ff;
+    font: 500 0.72rem/1.4 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .title h1 { margin: 0; font: 700 clamp(3.2rem, 6.4vw, 6rem)/1 var(--font-display); letter-spacing: -0.035em; }
+  .title-sub { margin: 0; max-width: 52rem; font: 500 clamp(1.25rem, 2.1vw, 2rem)/1.3 var(--font-display); letter-spacing: -0.01em; color: #ccd6db; }
+  .roadmap { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0 0; padding: 0; list-style: none; counter-reset: step; }
+  .roadmap a {
+    counter-increment: step; display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.8rem; border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.16); background: rgba(16, 20, 25, 0.55); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    color: #eef1f6; text-decoration: none; font: 500 0.85rem/1.2 var(--font-sans);
+  }
+  .roadmap a::before { content: counter(step, decimal-leading-zero); color: #a5e7ff; font: 600 0.7rem/1 var(--font-mono); }
+  .roadmap a:hover { background: rgba(38, 42, 48, 0.8); }
+
+  /* slide 4 */
+  .finding { border-left: 3px solid transparent; opacity: 0.55; transition: opacity 0.3s ease, border-color 0.3s ease; }
+  .finding.on { border-left-color: var(--m-linear); opacity: 1; }
+
+  /* slides 8 and 12: equations to a matrix */
+  .ols { display: flex; align-items: center; justify-content: center; gap: 1.5rem 2.5rem; padding-block: 1.6rem; flex-wrap: wrap; }
+  .ols-eqs { display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+  .ols-eqs math { font-size: 1.3rem; }
+  .ols-eqs .vdots { align-self: center; }
+  .ols-arrow { flex: none; color: var(--text-muted); }
+  .ols-right { display: flex; flex-direction: column; align-items: center; gap: 1.1rem; }
+  .mxeq { display: grid; grid-template-columns: repeat(5, auto); align-items: center; justify-items: center; gap: 0.5rem 0.7rem; }
+  .mx { position: relative; display: inline-grid; align-items: center; justify-items: center; gap: 0.55rem 1.2rem; padding: 0.6rem 0.9rem; }
+  .mx::before, .mx::after { content: ""; position: absolute; top: 0; bottom: 0; width: 0.5rem; border: 2px solid var(--text-secondary); }
+  .mx::before { left: 0; border-right: 0; border-radius: 4px 0 0 4px; }
+  .mx::after { right: 0; border-left: 0; border-radius: 0 4px 4px 0; }
+  .mx math { font-size: 1.2rem; }
+  .mx-cap { font: 600 0.74rem/1.3 var(--font-sans); color: var(--text-secondary); text-align: center; }
+  .mx-op math { font-size: 1.4rem; }
+  .ols-form { display: flex; align-items: center; gap: 0.75rem; }
+  .tag.plain { text-transform: none; letter-spacing: 0; font-size: 0.78rem; }
+  .tag { padding: 0.15rem 0.5rem; border-radius: 2px; background: var(--surface-high); color: var(--text-secondary); font: 600 0.66rem/1.3 var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; }
+  @media (max-width: 1500px) { .ols-arrow { transform: rotate(90deg); } .ols { flex-direction: column; } }
+
+  /* slide 9 */
+  .tl { display: grid; gap: 0.3rem 3px; margin-top: 0.5rem; font: 400 0.75rem/1.3 var(--font-mono); color: var(--text-secondary); }
+  .tl b { color: var(--text-primary); font-weight: 600; }
+  .tl-bar { height: 0.85rem; border-radius: 2px; background: var(--c); }
+  .tl-mid { justify-self: center; white-space: nowrap; }
+  .tl-end { justify-self: end; white-space: nowrap; }
+  .tl-start { white-space: nowrap; }
+  .heat-wrap { position: relative; }
+  .heat { width: 100%; border-collapse: separate; border-spacing: 3px; table-layout: fixed; }
+  .heat th { padding: 0.3rem; font: 400 0.7rem/1.2 var(--font-mono); text-transform: uppercase; color: var(--text-secondary); }
+  .heat th[scope="row"] { width: 4.5rem; font: 600 0.9rem/1 var(--font-mono); color: var(--text-primary); }
+  .heat td {
+    height: 1.9rem; padding: 0; border-radius: 3px; background: var(--c); color: var(--heat-text); text-align: center; cursor: default;
+    font: 600 1rem/1 var(--font-mono); font-variant-numeric: tabular-nums;
+  }
+  .heat td.best { outline: 3px solid var(--m-polynomial_seasonal); outline-offset: 1px; }
+  .heat-legend { display: inline-flex; align-items: center; gap: 0.5rem; font: 400 0.72rem/1.3 var(--font-mono); color: var(--text-secondary); }
+  .heat-legend i { width: 5rem; height: 0.6rem; border-radius: 2px; background: linear-gradient(90deg, color-mix(in oklab, var(--heat) 5%, var(--surface-1)), var(--heat)); }
+  .big-result { margin: 0; font: 600 1.15rem/1.4 var(--font-display); letter-spacing: -0.01em; }
+  .big-result b { color: var(--m-polynomial_seasonal); }
+
+  /* slide 11 */
+  .r-now { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+  .r-now output { font: 700 1.9rem/1 var(--font-mono); letter-spacing: -0.02em; color: var(--accent); font-variant-numeric: tabular-nums; }
+  input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 1.6rem; margin: 0; background: transparent; cursor: pointer; }
+  input[type="range"]::-webkit-slider-runnable-track { height: 0.5rem; border-radius: 0.25rem; background: var(--surface-high); }
+  input[type="range"]::-moz-range-track { height: 0.5rem; border-radius: 0.25rem; background: var(--surface-high); }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 1.2rem; height: 1.2rem; margin-top: -0.35rem; border-radius: 50%;
+    background: var(--accent); border: 2px solid var(--surface-1); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  }
+  input[type="range"]::-moz-range-thumb { width: 1rem; height: 1rem; border-radius: 50%; background: var(--accent); border: 2px solid var(--surface-1); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35); }
+  .range-ends { display: flex; justify-content: space-between; font: 400 0.7rem/1.2 var(--font-mono); color: var(--text-muted); }
+
+  /* slides 15 to 17 */
+  .center { flex: 1; display: flex; align-items: center; justify-content: center; }
+  .middle { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 1rem; }
+  .formulas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; width: min(100%, 68rem); }
+  .formulas .card { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; padding: 2.5rem 1.5rem 3rem; }
+  .formulas .eq { background: none; padding: 0; overflow: visible; }
+  .results { width: 100%; border-collapse: collapse; font: 500 1.1rem/1.4 var(--font-mono); font-variant-numeric: tabular-nums; }
+  .results th { padding: 0.6rem 1.1rem; text-align: right; border-bottom: 1px solid var(--border); font: 600 0.72rem/1.3 var(--font-sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary); }
+  .results td { padding: 1rem 1.1rem; text-align: right; border-bottom: 1px solid var(--soft); }
+  .results tr:last-child td { border-bottom: 0; }
+  .results th:first-child, .results td:first-child { text-align: left; }
+  .results td:first-child { font: 600 1rem/1.4 var(--font-sans); }
+  .results td:first-child .sw { width: 0.7rem; height: 0.7rem; border-radius: 50%; margin-right: 0.5rem; }
+  .results td:first-child small { display: block; margin-left: 1.2rem; font: 400 0.75rem/1.3 var(--font-mono); color: var(--text-muted); }
+  .results td.low { font-weight: 700; color: var(--secondary); }
+  .table-card { width: min(100%, 62rem); padding: 1rem 1.25rem; }
+  .live { flex: none; width: 100%; min-height: calc(100vh - 8rem); border: 0; border-radius: 8px; background: var(--surface-0); }
+  .demo { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; padding: 3rem 2rem; text-align: center; width: min(100%, 46rem); }
+  .demo p { margin: 0; font: 400 1.05rem/1.5 var(--font-sans); color: var(--text-secondary); }
+  .cta { padding: 0.9rem 1.6rem; border-radius: 6px; font-size: 1.1rem; }
+
+  .missing { margin: 2rem; padding: 1rem 1.25rem; border-radius: 8px; background: var(--surface-1); border: 1px solid var(--border); font: 400 0.95rem/1.5 var(--font-sans); }
+</style>
+</head>
+<body>
+<aside class="rail" id="rail">
+  <a class="rail-brand" href="#intro">
+    <span class="brand-mark" aria-hidden="true">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18c2-1 3-5 5-5s2 3 4 3 2-6 4-6 3-4 5-6"/></svg>
+    </span>
+    <span>
+      <span class="brand-name">The Keeling Curve</span>
+      <span class="brand-sub">Presentation</span>
+    </span>
+  </a>
+  <nav class="rail-nav" id="rail-nav" aria-label="Sections"></nav>
+  <div class="rail-foot">
+    <a class="btn-main" href="index.html#explorer">Open the live explorer
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </a>
+    <div class="pager">
+      <button class="btn-ghost" id="prev" type="button" aria-label="Previous section">&#8249; Prev</button>
+      <span id="counter">01 / 17</span>
+      <button class="btn-ghost" id="next" type="button" aria-label="Next section">Next &#8250;</button>
+    </div>
+    <div class="toggles">
+      <button class="btn-ghost" id="theme-toggle" type="button">Light / dark</button>
+    </div>
+  </div>
+</aside>
+<button class="rail-show" id="rail-show" type="button" aria-label="Hide or show the menu" aria-expanded="true">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+</button>
+
+<main class="deck" id="deck">
+  <p class="missing" id="missing" hidden>The page needs <code>data.js</code> and <code>presentation-data.js</code> next to it. Create them from the project folder with
+    <code>python scripts/export_frontend.py</code> and <code>python scripts/export_presentation.py</code>.</p>
+
+  <!-- 01 -->
+  <section class="slide title" id="intro" data-nav="Introduction" data-group="Overview" aria-labelledby="intro-h">
+    <p class="kicker">DSM-101 &middot; DSM-102 &middot; Linear or not? &middot; Project 4</p>
+    <h1 id="intro-h">The Keeling Curve</h1>
+    <p class="title-sub">Linear and Nonlinear Modeling of Atmospheric CO₂</p>
+    <ol class="roadmap" aria-label="Outline">
+      <li><a href="#dataset">The data</a></li>
+      <li><a href="#linear">Linear regression</a></li>
+      <li><a href="#polynomial">Polynomial and harmonics</a></li>
+      <li><a href="#exp-function">Exponential growth</a></li>
+      <li><a href="#metrics">Evaluation</a></li>
+      <li><a href="#demo">Live demo</a></li>
+    </ol>
+  </section>
+
+  <!-- 02 -->
+  <section class="slide" id="dataset" data-nav="Dataset and preprocessing" data-group="Overview" aria-labelledby="dataset-h" style="--plot-h:clamp(300px, calc(100vh - 21rem), 700px)">
+    <header class="slide-head">
+      <span class="eyebrow"><b>02</b>The data</span>
+      <h2 class="slide-title" id="dataset-h">Dataset and Preprocessing</h2>
+      <p class="lede" id="dataset-lede"></p>
+    </header>
+    <div class="split">
+      <figure class="card chart-card">
+        <div class="chart-top">
+          <ul class="key" id="record-key"></ul>
+        </div>
+        <div id="g-record"></div>
+        <figcaption class="source">Data: NOAA Global Monitoring Laboratory, monthly mean CO₂ at Mauna Loa (co2_mm_mlo.txt). Values before May 1974 are from the Scripps Institution of Oceanography.</figcaption>
+      </figure>
+      <div class="side">
+        <div class="card panel">
+          <h3 class="cap">What ppm means</h3>
+          <div class="eq"><math display="block"><mrow>
+            <msub><mi>CO</mi><mn>2</mn></msub><mtext>&nbsp;(ppm)</mtext><mo>=</mo>
+            <mfrac><msub><mi>N</mi><msub><mi>CO</mi><mn>2</mn></msub></msub><msub><mi>N</mi><mtext>dry air</mtext></msub></mfrac>
+            <mo>×</mo><msup><mn>10</mn><mn>6</mn></msup>
+          </mrow></math></div>
+          <p class="panel-text"><b>420 ppm (parts per million)</b> means about 420 CO₂ molecules in every million molecules of dry air.</p>
+        </div>
+        <div class="card panel">
+          <h3 class="cap">Where the values come from</h3>
+          <dl class="kv" id="split-kv"></dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 -->
+  <section class="slide" id="linear" data-nav="Rung 1: Linear regression" data-group="Linear models" aria-labelledby="linear-h">
+    <header class="slide-head">
+      <span class="eyebrow"><b>03</b>Linear models</span>
+      <h2 class="slide-title" id="linear-h">Rung 1: Linear Regression</h2>
+      <p class="lede">The simplest baseline: one straight line fitted to the training years by least squares.</p>
+    </header>
+    <div class="split">
+      <figure class="card chart-card">
+        <div class="chart-top">
+          <ul class="key">
+            <li><span class="sw" style="--c:var(--observed)"></span>Measured</li>
+            <li><span class="sw" style="--c:var(--m-linear)"></span>Fitted line</li>
+          </ul>
+        </div>
+        <div id="g-linear"></div>
+      </figure>
+      <div class="side">
+        <div class="card panel">
+          <h3 class="cap">Model</h3>
+          <div class="eq"><math display="block"><mrow>
+            <mi>y</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo>
+            <msub><mi>β</mi><mn>0</mn></msub><mo>+</mo><msub><mi>β</mi><mn>1</mn></msub><mi>t</mi>
+          </mrow></math></div>
+          <p class="panel-text">t counts years from March 1958.</p>
+        </div>
+        <div class="card panel">
+          <h3 class="cap" id="lin-cap">Fitted</h3>
+          <div class="eq" id="lin-eq"></div>
+          <dl class="coef">
+            <div><dt><math><msub><mi>β</mi><mn>0</mn></msub></math> = <b id="lin-b0"></b> ppm</dt><dd>the concentration at the reference time t = 0</dd></div>
+            <div><dt><math><msub><mi>β</mi><mn>1</mn></msub></math> = <b id="lin-b1"></b> ppm per year</dt><dd>a constant growth rate</dd></div>
+          </dl>
+          <p class="panel-text">Linear in time, and linear in the two unknown parameters.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 -->
+  <section class="slide" id="residuals" data-nav="Residual analysis" data-group="Linear models" aria-labelledby="residuals-h">
+    <header class="slide-head">
+      <span class="eyebrow"><b>04</b>Linear models</span>
+      <h2 class="slide-title" id="residuals-h">Residual Analysis</h2>
+      <p class="lede">The plot of residuals shows two different systematic errors.</p>
+    </header>
+    <div class="split">
+      <figure class="card chart-card">
+        <div class="chart-top">
+          <ul class="key"><li><span class="sw" style="--c:var(--m-linear)"></span>Residual of the straight line</li></ul>
+          <div class="tool-group">
+            <button class="btn-main" id="resid-zoom" type="button">Zoom into several years</button>
+            <button class="btn-ghost" id="resid-reset" type="button" disabled>Reset</button>
+          </div>
+        </div>
+        <div id="g-resid"></div>
+      </figure>
+      <div class="side">
+        <div class="card panel">
+          <h3 class="cap">Residual</h3>
+          <div class="eq"><math display="block"><mrow>
+            <msub><mi>e</mi><mi>i</mi></msub><mo>=</mo><msub><mi>y</mi><mi>i</mi></msub><mo>−</mo>
+            <msub><mover accent="true"><mi>y</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub>
+          </mrow></math></div>
+          <p class="panel-text">Measured value - predicted value of CO₂, in ppm.</p>
+        </div>
+        <div class="card panel finding on" id="find-full">
+         <p class="panel-text" id="find-full-text"></p>
+        </div>
+        <div class="card panel finding" id="find-zoom">
+         <p class="panel-text" id="find-zoom-text"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 -->
+  <section class="slide" id="decades" data-nav="Rung 2: By decades" data-group="Linear models" aria-labelledby="decades-h" style="--plot-h:clamp(280px, calc(100vh - 22rem), 660px)">
+    <header class="slide-head">
+      <span class="eyebrow"><b>05</b>Linear models</span>
+      <h2 class="slide-title" id="decades-h">Rung 2: Linear Regression by Decades</h2>
+      <p class="lede">CO₂ growth is nearly linear within decades, but accelerates over time.</p>
+    </header>
+    <div class="duo">
+      <figure class="card chart-card">
+        <div class="chart-top">
+          <h3 class="card-title">One fitted line per decade</h3>
+          <ul class="key"><li><span class="sw" style="--c:var(--observed);opacity:.5"></span>Measured</li><li><span class="sw" style="--c:var(--m-linear)"></span>Decade fits, labelled with their slope</li></ul>
+        </div>
+        <div id="g-decades"></div>
+      </figure>
+      <figure class="card chart-card">
+        <div class="chart-top">
+          <h3 class="card-title">Growth rate by decade</h3>
+          <ul class="key"><li><span class="sw dash" style="--c:var(--text-secondary)"></span>The single line of rung 1</li></ul>
+        </div>
+        <div id="g-slopes"></div>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 06 -->
+  <section class="slide" id="polynomial" data-nav="Rung 3: Polynomial regression" data-group="Polynomial Model" aria-labelledby="polynomial-h">
+    <header class="slide-head">
+      <span class="eyebrow"><b>06</b>Polynomial Model</span>
+      <h2 class="slide-title" id="polynomial-h">Rung 3: Polynomial Regression</h2>
+      <p class="lede">Higher-degree polynomials capture more complex trends but risk overfitting.</p>
+    </header>
+    <div class="split">
+      <figure class="card chart-card">
+        <div class="chart-top">
+          <div class="tool-group">
+            <span class="lbl">Degree</span>
+            <div class="seg" id="deg-seg" role="group" aria-label="Polynomial degree" style="--m:var(--m-polynomial_seasonal)"></div>
+          </div>
+          <ul class="key">
+            <li><span class="sw" style="--c:var(--observed)"></span>Measured</li>
+            <li><span class="sw" style="--c:var(--m-polynomial_seasonal)"></span>Polynomial fit</li>
+          </ul>
+        </div>
+        <div id="g-poly"></div>
+      </figure>
+      <div class="side">
+        <div class="card panel">
+          <h3 class="cap">General form</h3>
+          <div class="eq"><math display="block"><mrow>
+            <mi>y</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo>
+            <munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>0</mn></mrow><mi>d</mi></munderover>
+            <msub><mi>β</mi><mi>k</mi></msub><msup><mi>t</mi><mi>k</mi></msup>
+          </mrow></math></div>
+          <p class="panel-text">Nonlinear in time t, linear in the coefficients β.</p>
+        </div>
+        <div class="card panel" aria-live="polite">
+          <h3 class="cap" id="poly-cap"></h3>
+          <div class="eq eq-lines" id="poly-eq"></div>
+          <dl class="kv"><div><dt>Training RMSE</dt><dd id="poly-rmse"></dd></div></dl>
+          <p class="panel-text fine">t in years since March 1958.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 -->
+  <section class="slide stack" id="harmonics" data-nav="Seasonal harmonics" data-group="Polynomial Model" aria-labelledby="harmonics-h">
+    <header class="slide-head">
+      <span class="eyebrow"><b>07</b>Polynomial Model</span>
+      <h2 class="slide-title" id="harmonics-h">Seasonal Components: Harmonic Regression</h2>
+      <p class="lede">More harmonics capture seasonal CO₂ fluctuations in greater detail.</p>
+    </header>
+    <div class="card strip">
+      <div class="eq"><math display="block"><mrow>
+        <mi>S</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo>
+        <munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>h</mi></munderover>
+        <mrow><mo stretchy="false">[</mo>
+          <msub><mi>a</mi><mi>j</mi></msub><mi>sin</mi><mo>&#x2061;</mo><mo stretchy="false">(</mo><mn>2</mn><mi>π</mi><mi>j</mi><mi>t</mi><mo stretchy="false">)</mo>
+          <mo>+</mo>
+          <msub><mi>b</mi><mi>j</mi></msub><mi>cos</mi><mo>&#x2061;</mo><mo stretchy="false">(</mo><mn>2</mn><mi>π</mi><mi>j</mi><mi>t</mi><mo stretchy="false">)</mo>
+        <mo stretchy="false">]</mo></mrow>
+      </mrow></math></div>
+      <div class="strip-side">
+        <div class="tool-group">
+          <span class="lbl">Harmonics</span>
+          <div class="seg" id="harm-seg" role="group" aria-label="Number of harmonics" style="--m:var(--m-polynomial_seasonal)"></div>
+        </div>
+        <dl class="chips" id="harm-chips" aria-live="polite" style="align-self: flex-end"></dl>
+      </div>
+    </div>
+    <figure class="card chart-card">
+      <div class="chart-top">
+        <ul class="key">
+          <li><span class="sw dot" style="--c:var(--observed)"></span>Measured monthly values</li>
+          <li><span class="sw" style="--c:var(--m-polynomial_seasonal)"></span><span id="harm-key"></span></li>
+        </ul>
+        <p class="hint" id="harm-hint"></p>
+      </div>
+      <div id="g-harm"></div>
+    </figure>
+  </section>
+
+  <!-- 08 -->
+  <section class="slide" id="ols" data-nav="Why OLS still works" data-group="Polynomial Model" aria-labelledby="ols-h">
+    <header class="slide-head">
+      <span class="eyebrow"><b>08</b>Polynomial Model</span>
+      <h2 class="slide-title" id="ols-h">Fitting the Combined Model with OLS</h2>
+      <p class="lede">Example with degree 2 and one harmonic: one equation per measurement, five unknowns.</p>
+    </header>
+    <div class="card strip" style="justify-content:center"><div class="eq"><math display="block"><mrow>
+      <mi>y</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo>
+      <munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>0</mn></mrow><mn>2</mn></munderover>
+      <msub><mi>β</mi><mi>k</mi></msub><msup><mi>t</mi><mi>k</mi></msup><mo>+</mo>
+      <munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mn>4</mn></munderover>
+      <mrow><mo stretchy="false">[</mo>
+        <msub><mi>a</mi><mi>j</mi></msub><mi>sin</mi><mo>&#x2061;</mo><mo stretchy="false">(</mo><mn>2</mn><mi>π</mi><mi>j</mi><mi>t</mi><mo stretchy="false">)</mo><mo>+</mo>
+        <msub><mi>b</mi><mi>j</mi></msub><mi>cos</mi><mo>&#x2061;</mo><mo stretchy="false">(</mo><mn>2</mn><mi>π</mi><mi>j</mi><mi>t</mi><mo stretchy="false">)</mo>
+      <mo stretchy="false">]</mo></mrow>
+    </mrow></math></div></div>
+    <div class="middle">
+      <div class="card ols" id="ols-poly"></div>
+      <ul class="key">
+        <li><span class="sw box" style="--c:var(--known)"></span>Known numbers, computed from the measurement times</li>
+        <li><span class="sw box" style="--c:var(--unk)"></span>Unknown coefficients, found by least squares</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 09 -->
+  <section class="slide" id="selection" data-nav="Model selection" data-group="Polynomial Model" aria-labelledby="selection-h">
+    <header class="slide-head">
+      <span class="eyebrow"><b>09</b>Polynomial Model</span>
+      <h2 class="slide-title" id="selection-h">Model Selection with Validation</h2>
+      <p class="lede">Degree and harmonics are chosen on years the fit has not seen.</p>
+    </header>
+    <div class="card">
+      <h3 class="cap">How the months are used</h3>
+      <div class="tl" id="timeline"></div>
+    </div>
+    <div class="split">
+      <figure class="card chart-card">
+        <div class="chart-top">
+          <h3 class="card-title">Validation RMSE in ppm</h3>
+          <span class="heat-legend"><span>low</span><i></i><span>high (log scale)</span></span>
+        </div>
+        <div class="heat-wrap">
+          <table class="heat" id="heat"></table>
+          <div class="tooltip" id="heat-tip" role="status"></div>
+        </div>
+        <figcaption class="fine" id="heat-note"></figcaption>
+      </figure>
+      <div class="side">
+        <div class="card panel">
+          <h3 class="cap">Score on the validation months</h3>
+          <div class="eq"><math display="block"><mrow>
+            <mi>RMSE</mi><mo>=</mo>
+            <msqrt><mrow>
+              <mfrac><mn>1</mn><mi>n</mi></mfrac>
+              <munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover>
+              <msup><mrow><mo stretchy="false">(</mo><msub><mi>y</mi><mi>i</mi></msub><mo>−</mo><msub><mover accent="true"><mi>y</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub><mo stretchy="false">)</mo></mrow><mn>2</mn></msup>
+            </mrow></msqrt>
+          </mrow></math></div>
+        </div>
+        <div class="card panel">
+          <h3 class="cap">Selected</h3>
+          <p class="big-result" id="sel-result"></p>
+          <p class="panel-text" id="sel-text"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide stack two-rows" id="selected" data-nav="Selected model" data-group="Polynomial Model" aria-labelledby="selected-h">
+    <header class="slide-head">
+      <span class="eyebrow"><b>10</b>Polynomial Model</span>
+      <h2 class="slide-title" id="selected-h">Selected Polynomial + Harmonic Model</h2>
+      <p class="lede" id="selected-lede"></p>
+    </header>
+    <div class="card strip">
+      <div class="eq"><math display="block"><mrow>
+        <mi>y</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo>
+        <munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>0</mn></mrow><mn>2</mn></munderover>
+        <msub><mi>β</mi><mi>k</mi></msub><msup><mi>t</mi><mi>k</mi></msup>
+        <mo>+</mo>
+        <munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mn>4</mn></munderover>
+        <mrow><mo stretchy="false">[</mo>
+          <msub><mi>a</mi><mi>j</mi></msub><mi>sin</mi><mo>&#x2061;</mo><mo stretchy="false">(</mo><mn>2</mn><mi>π</mi><mi>j</mi><mi>t</mi><mo stretchy="false">)</mo>
+          <mo>+</mo>
+          <msub><mi>b</mi><mi>j</mi></msub><mi>cos</mi><mo>&#x2061;</mo><mo stretchy="false">(</mo><mn>2</mn><mi>π</mi><mi>j</mi><mi>t</mi><mo stretchy="false">)</mo>
+        <mo stretchy="false">]</mo></mrow>
+      </mrow></math></div>
+      <dl class="chips" id="selected-chips" style="--m:var(--m-polynomial_seasonal)"></dl>
+    </div>
+    <figure class="card chart-card">
+      <div class="chart-top">
+        <ul class="key">
+          <li><span class="sw" style="--c:var(--observed)"></span>Measured</li>
+          <li><span class="sw" style="--c:var(--m-polynomial_seasonal)"></span>Complete fitted model</li>
+        </ul>
+      </div>
+      <div id="g-selected"></div>
+    </figure>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide" id="exp-function" data-nav="The exponential function" data-group="Exponential Model" aria-labelledby="exp-function-h">
+    <header class="slide-head">
+      <span class="eyebrow"><b>11</b>Exponential Model</span>
+      <h2 class="slide-title" id="exp-function-h">Exponential Growth and the Rate Parameter</h2>
+     <p class="lede">How the growth rate <i>r</i> affects the shape of the exponential curve.</p>
+    </header>
+    <div class="split">
+      <figure class="card chart-card">
+        <div class="chart-top">
+          <ul class="key"><li><span class="sw" style="--c:var(--accent)"></span><math><mi>y</mi><mo>=</mo><msup><mi>e</mi><mrow><mi>r</mi><mi>x</mi></mrow></msup></math></li></ul>
+        </div>
+        <div id="g-exp"></div>
+      </figure>
+      <div class="side">
+        <div class="card panel">
+          <h3 class="cap">Function</h3>
+          <div class="eq"><math display="block"><mrow><mi>y</mi><mo>=</mo><msup><mi>e</mi><mrow><mi>r</mi><mi>x</mi></mrow></msup></mrow></math></div>
+        </div>
+        <div class="card panel">
+          <div class="r-now"><label class="cap" for="r-slider">Growth rate</label><output id="r-out" for="r-slider"></output></div>
+          <input type="range" id="r-slider" min="0.001" max="0.2" step="0.001" value="0.001">
+          <div class="range-ends"><span>0.001</span><span>0.2</span></div>
+          <dl class="kv" aria-live="polite">
+            <div><dt>Value at x = 100</dt><dd id="r-f100"></dd></div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 -->
+  <section class="slide" id="exp-ols" data-nav="Exponential with fixed r" data-group="Exponential Model" aria-labelledby="exp-ols-h" style="--unk:var(--m-exponential_seasonal)">
+    <header class="slide-head">
+      <span class="eyebrow"><b>12</b>Exponential Model</span>
+      <h2 class="slide-title" id="exp-ols-h">Fitting the Exponential Model for Fixed r</h2>
+      <p class="lede">With <i>r</i> fixed, the remaining parameters can be estimated using OLS. 
+</p>
+    </header>
+    <div class="middle">
+      <div class="card ols" id="ols-exp"></div>
+      <ul class="key">
+        <li><span class="sw box" style="--c:var(--known)"></span>Known numbers once r is fixed</li>
+        <li><span class="sw box" style="--c:var(--unk)"></span>Unknown coefficients, found by least squares</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 13 -->
+  <section class="slide" id="exp-rate" data-nav="Finding the growth rate" data-group="Exponential Model" aria-labelledby="exp-rate-h">
+    <header class="slide-head">
+      <span class="eyebrow"><b>13</b>Exponential Model</span>
+      <h2 class="slide-title" id="exp-rate-h">Finding the Optimal Growth Rate r</h2>
+      <p class="lede">Comparing fitting errors across different values of <i>r</i> to identify the best fit.</p>
+    </header>
+    <div class="split">
+      <figure class="card chart-card">
+        <div class="chart-top">
+          <ul class="key">
+            <li><span class="sw" style="--c:var(--m-exponential_seasonal)"></span>Training RMSE for each r</li>
+            <li><span class="sw dot" style="--c:var(--m-exponential_seasonal)"></span>Minimum, r*</li>
+          </ul>
+        </div>
+        <div id="g-rate"></div>
+      </figure>
+      <div class="side">
+        <div class="card panel">
+          <h3 class="cap">Search</h3>
+          <div class="eq"><math display="block"><mrow>
+            <msup><mi>r</mi><mo>*</mo></msup><mo>=</mo>
+            <munder><mrow><mi>arg</mi><mspace width="0.2em"/><mi>min</mi></mrow><mrow><mi>r</mi><mo>∈</mo><mo stretchy="false">[</mo><mn>0.005</mn><mo>,</mo><mn>0.1</mn><mo stretchy="false">]</mo></mrow></munder>
+            <mspace width="0.3em"/><mi>RMSE</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo>
+          </mrow></math></div>
+        </div>
+        <div class="card panel">
+          <h3 class="cap">Result</h3>
+          <dl class="chips" id="rate-chips" style="--m:var(--m-exponential_seasonal)"></dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14 -->
+  <section class="slide stack two-rows" id="exp-fit" data-nav="Fitted exponential model" data-group="Exponential Model" aria-labelledby="exp-fit-h">
+    <header class="slide-head">
+      <span class="eyebrow"><b>14</b>Exponential Model</span>
+      <h2 class="slide-title" id="exp-fit-h">The Fitted Exponential Model</h2>
+      <p class="lede">The exponential trend with its seasonal harmonics.</p>
+    </header>
+    <div class="card strip">
+      <div class="eq"><math display="block"><mrow>
+        <mi>y</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo>
+        <msub><mi>y</mi><mn>0</mn></msub><mo>+</mo><mi>a</mi>
+        <msup><mi>e</mi><mrow><msup><mi>r</mi><mo>*</mo></msup><mi>t</mi></mrow></msup>
+        <mo>+</mo>
+        <munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>h</mi></munderover>
+        <mrow><mo stretchy="false">[</mo>
+          <msub><mi>b</mi><mi>j</mi></msub><mi>sin</mi><mo>&#x2061;</mo><mo stretchy="false">(</mo><mn>2</mn><mi>π</mi><mi>j</mi><mi>t</mi><mo stretchy="false">)</mo>
+          <mo>+</mo>
+          <msub><mi>d</mi><mi>j</mi></msub><mi>cos</mi><mo>&#x2061;</mo><mo stretchy="false">(</mo><mn>2</mn><mi>π</mi><mi>j</mi><mi>t</mi><mo stretchy="false">)</mo>
+        <mo stretchy="false">]</mo></mrow>
+      </mrow></math></div>
+      <dl class="chips" id="expfit-chips" style="--m:var(--m-exponential_seasonal)"></dl>
+    </div>
+    <figure class="card chart-card">
+      <div class="chart-top">
+        <ul class="key">
+          <li><span class="sw" style="--c:var(--observed)"></span>Measured</li>
+          <li><span class="sw" style="--c:var(--m-exponential_seasonal)"></span>Complete fitted exponential model</li>
+        </ul>
+      </div>
+      <div id="g-expfit"></div>
+    </figure>
+  </section>
+
+  <!-- 15 -->
+  <section class="slide" id="metrics" data-nav="Evaluation metrics" data-group="Evaluation" aria-labelledby="metrics-h">
+    <header class="slide-head">
+      <span class="eyebrow"><b>15</b>Evaluation</span>
+      <h2 class="slide-title" id="metrics-h">Evaluation Methods</h2>
+      <p class="lede">Two measures of error, in ppm.</p>
+    </header>
+    <div class="center">
+      <div class="formulas">
+        <div class="card">
+          <h3 class="cap">Mean absolute error</h3>
+          <div class="eq big"><math display="block"><mrow>
+            <mi>MAE</mi><mo>=</mo><mfrac><mn>1</mn><mi>n</mi></mfrac>
+            <munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover>
+            <mrow><mo stretchy="false">|</mo><msub><mi>y</mi><mi>i</mi></msub><mo>−</mo><msub><mover accent="true"><mi>y</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub><mo stretchy="false">|</mo></mrow>
+          </mrow></math></div>
+        </div>
+        <div class="card">
+          <h3 class="cap">Root mean squared error</h3>
+          <div class="eq big"><math display="block"><mrow>
+            <mi>RMSE</mi><mo>=</mo>
+            <msqrt><mrow>
+              <mfrac><mn>1</mn><mi>n</mi></mfrac>
+              <munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover>
+              <msup><mrow><mo stretchy="false">(</mo><msub><mi>y</mi><mi>i</mi></msub><mo>−</mo><msub><mover accent="true"><mi>y</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub><mo stretchy="false">)</mo></mrow><mn>2</mn></msup>
+            </mrow></msqrt>
+          </mrow></math></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 16 -->
+  <section class="slide" id="comparison" data-nav="Model comparison" data-group="Evaluation" aria-labelledby="comparison-h">
+    <header class="slide-head">
+      <span class="eyebrow"><b>16</b>Evaluation</span>
+      <h2 class="slide-title" id="comparison-h">Model Comparison</h2>
+      <p class="lede" id="comparison-lede"></p>
+    </header>
+    <div class="center">
+      <div class="card table-card">
+        <table class="results" id="results"></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 17 -->
+  <section class="slide" id="demo" data-nav="Live demonstration" data-group="Evaluation" aria-labelledby="demo-h">
+    <header class="slide-head">
+      <span class="eyebrow"><b>17</b>Evaluation</span>
+      <h2 class="slide-title" id="demo-h">Live Demonstration</h2>
+    </header>
+    <iframe class="live" id="live" src="index.html?embed#explorer" title="Interactive atmospheric forecaster" scrolling="no"></iframe>
+  </section>
+</main>
+
+<script src="data.js"></script>
+<script src="presentation-data.js"></script>
+<script>
+(() => {
+  "use strict";
+  const D = window.CO2_DATA, P = window.CO2_PRESENTATION;
+  const $ = (id) => document.getElementById(id);
+  if (!D || !P || D.months[0] !== P.meta.time_origin) { $("missing").hidden = false; return; }
+
+  // ---------- data and small helpers ----------
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const obs = D.observed, M = P.meta;
+  const at = Object.fromEntries(D.months.map((m, i) => [m, i]));       // "1984-01" -> month index
+  const iTrainEnd = at[M.train[1]], iHeld = at[M.held_out[0]], iLast = at[M.held_out[1]];
+  const T = (i) => i / 12;                                              // month index -> years since March 1958
+  const label = (i) => `${MONTHS[(i + 2) % 12]} ${1958 + Math.floor((i + 2) / 12)}`;
+  const period = ([a, b]) => `${label(at[a])} to ${label(at[b])}`;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const lerp = (a, b, k) => a + (b - a) * k;
+  const ease = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+  const mean = (a) => a.reduce((s, v) => s + v, 0) / a.length;
+  const f1 = (v) => v.toFixed(1), f2 = (v) => v.toFixed(2), f3 = (v) => v.toFixed(3);
+  const signed = (v, d = 2) => (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(d);
+  const ppm = (v) => `${f2(v)} ppm`, sppm = (v) => `${signed(v)} ppm`;
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+  const rootPx = () => parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+  const OBSERVED = "var(--observed)", LINEAR = "var(--m-linear)", POLY = "var(--m-polynomial_seasonal)", EXPO = "var(--m-exponential_seasonal)";
+
+  // the fitted models, evaluated in the browser from their coefficients (same formulas as the Python classes)
+  const poly = (coef, t) => { const x = t / 10; let s = 0, p = 1; for (const c of coef) { s += c * p; p *= x; } return s; };
+  const waves = (w, t) => {
+    let s = 0;
+    for (let k = 1; 2 * k <= w.length; k++) { const u = 2 * Math.PI * k * t; s += w[2 * k - 2] * Math.sin(u) + w[2 * k - 1] * Math.cos(u); }
+    return s;
+  };
+  const linearAt = (t) => P.linear.intercept + P.linear.slope * t;
+  const trendPlusWaves = (coef, nTrend) => { const a = coef.slice(0, nTrend), w = coef.slice(nTrend); return (t) => poly(a, t) + waves(w, t); };
+  const selectedAt = trendPlusWaves(P.selected.coef, P.selected.degree + 1);
+  const E = P.exponential, expWaves = E.coef.slice(2);
+  const expAt = (t) => E.coef[0] + E.coef[1] * Math.expm1(E.rate * t) + waves(expWaves, t);
+
+  // runs step(k) for k from 0 to 1; still ends on step(1) when the browser is not drawing frames (hidden tab)
+  function tween(ms, step) {
+    if (reduced.matches || !ms) { step(1); return () => {}; }
+    const t0 = performance.now();
+    let live = true, raf = 0, timer = 0;
+    const end = () => { if (!live) return; live = false; cancelAnimationFrame(raf); clearTimeout(timer); step(1); };
+    const frame = (now) => {
+      if (!live) return;
+      const k = (now - t0) / ms;
+      if (k >= 1) return end();
+      step(ease(k)); raf = requestAnimationFrame(frame);
+    };
+    raf = requestAnimationFrame(frame);
+    timer = setTimeout(end, ms + 250);
+    return () => { live = false; cancelAnimationFrame(raf); clearTimeout(timer); };
+  }
+
+  // ---------- a small SVG graph: axes, hover read-out, drag to zoom ----------
+  function niceStep(raw) {
+    const p = Math.pow(10, Math.floor(Math.log10(raw)));
+    return [1, 2, 2.5, 5, 10].map((s) => s * p).find((s) => s >= raw - 1e-12);
+  }
+  // x ticks for a time axis in years since March 1958: years, or months once only a few years are in view
+  function timeTicks(g) {
+    const span = g.x1 - g.x0, room = Math.max(2, g.iw / (58 * g.u)), out = [];
+    const january = (year) => year - 1958 - 2 / 12;
+    if (span > 6) {
+      const step = [1, 2, 5, 10, 20, 50].find((s) => span / s <= room) || 50;
+      for (let y = Math.ceil((1958 + g.x0 + 2 / 12) / step - 1e-9) * step; january(y) <= g.x1 + 1e-9; y += step) out.push({ x: january(y), text: String(y) });
+    } else {
+      const every = [1, 2, 3, 6, 12].find((s) => (span * 12) / s <= room) || 12;
+      for (let i = Math.ceil(g.x0 * 12 - 1e-9); i <= g.x1 * 12 + 1e-9; i++) {
+        const m = (i + 2) % 12;
+        if (m % every === 0) out.push({ x: i / 12, text: m === 0 ? String(1958 + Math.floor((i + 2) / 12)) : MONTHS[m] });
+      }
+    }
+    return out;
+  }
+  const px = (v) => v.toFixed(1);
+  // a monthly series (array indexed by month) between two month indices, drawn only where it is in view
+  function pathMonths(g, arr, i0, i1) {
+    const a = Math.max(i0, Math.floor(g.x0 * 12) - 1), b = Math.min(i1, Math.ceil(g.x1 * 12) + 1);
+    let d = "", pen = false;
+    for (let i = a; i <= b; i++) {
+      const v = arr[i];
+      if (v == null) { pen = false; continue; }
+      d += `${pen ? "L" : "M"}${px(g.X(i / 12))},${px(g.Y(v))}`; pen = true;
+    }
+    return d;
+  }
+  // a function of x between a and b, sampled about twice per pixel
+  function pathFn(g, f, a, b) {
+    a = Math.max(a, g.x0); b = Math.min(b, g.x1);
+    if (b <= a) return "";
+    const n = Math.max(2, Math.ceil((g.X(b) - g.X(a)) * 2));
+    let d = "";
+    for (let k = 0; k <= n; k++) { const x = a + ((b - a) * k) / n; d += `${k ? "L" : "M"}${px(g.X(x))},${px(clamp(g.Y(f(x)), -4000, 4000 + g.H))}`; }
+    return d;
+  }
+  const stroke = (d, color, width, extra = "") =>
+    d ? `<path d="${d}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linejoin="round" stroke-linecap="round" ${extra}/>` : "";
+  function dotsMonths(g, arr, i0, i1, color, r) {
+    const a = Math.max(i0, Math.ceil(g.x0 * 12)), b = Math.min(i1, Math.floor(g.x1 * 12));
+    let s = "";
+    for (let i = a; i <= b; i++) if (arr[i] != null) s += `<circle cx="${px(g.X(i / 12))}" cy="${px(g.Y(arr[i]))}" r="${r}" fill="${color}"/>`;
+    return s;
+  }
+  // measured values: a line, plus one dot per month once few enough years are in view to tell them apart
+  function measured(g, i0, i1, color = OBSERVED, opacity = 1) {
+    const close = g.x1 - g.x0 <= 9;
+    return [stroke(pathMonths(g, obs, i0, i1), color, 1.5 * g.u, `stroke-opacity="${close ? 0.5 * opacity : opacity}"`),
+            close ? dotsMonths(g, obs, i0, i1, color, 2.6 * g.u) : ""];
+  }
+  function band(g, a, b, fill, text) {
+    const xa = Math.max(g.X(a), g.p.l), xb = Math.min(g.X(b), g.W - g.p.r);
+    if (xb <= xa) return "";
+    return `<rect x="${px(xa)}" y="${g.p.t}" width="${px(xb - xa)}" height="${g.ih}" fill="${fill}"/>` +
+      (text && xb - xa > 76 * g.u ? `<text class="band-label" x="${px(xa + 8 * g.u)}" y="${g.p.t + 16 * g.u}">${text}</text>` : "");
+  }
+  // y range that follows the values in view (monthly arrays or functions of t), so zooming in shows detail
+  function yFit(series, i0, i1, minSpan = 4) {
+    return (x0, x1) => {
+      const a = Math.max(i0, Math.floor(x0 * 12)), b = Math.min(i1, Math.ceil(x1 * 12));
+      let lo = Infinity, hi = -Infinity;
+      for (const s of series) for (let i = a; i <= b; i++) {
+        const v = typeof s === "function" ? s(i / 12) : s[i];
+        if (v == null) continue;
+        if (v < lo) lo = v; if (v > hi) hi = v;
+      }
+      const half = Math.max(hi - lo, minSpan) / 2, mid = (hi + lo) / 2;
+      return [mid - half * 1.12, mid + half * 1.12];
+    };
+  }
+
+  let clips = 0;
+  function makeChart(host, cfg) {
+    const clip = `clip-${++clips}`;
+    host.classList.add("plot");
+    if (cfg.zoom) host.classList.add("zoomable");
+    host.innerHTML =
+      `<svg class="pl-base" role="img" aria-label="${cfg.label}"></svg>` +
+      `<svg class="pl-over" aria-hidden="true"><rect class="brush" visibility="hidden"/><line class="hover-line" visibility="hidden"/><g class="hover-dots"></g></svg>` +
+      `<div class="tooltip" role="status"></div>` +
+      (cfg.zoom && cfg.resetButton !== false ? `<button class="zoom-reset" type="button" hidden>Reset zoom</button>` : "");
+    const base = host.querySelector(".pl-base"), over = host.querySelector(".pl-over"), tip = host.querySelector(".tooltip");
+    const brush = over.querySelector(".brush"), hline = over.querySelector(".hover-line"), hdots = over.querySelector(".hover-dots");
+    const resetBtn = host.querySelector(".zoom-reset");
+    const full = cfg.x.slice();
+    let dom = cfg.x.slice(), g = null, pointer = null, drag = null, stop = () => {};
+
+    function geometry() {
+      const u = rootPx() / 16, W = host.clientWidth, H = host.clientHeight;
+      const p = { l: (cfg.padL ?? 50) * u, r: 18 * u, t: (cfg.title ? 32 : 14) * u, b: (cfg.xTitle ? 48 : 28) * u };
+      const [x0, x1] = dom, [y0, y1] = typeof cfg.y === "function" ? cfg.y(x0, x1) : cfg.y;
+      const iw = W - p.l - p.r, ih = H - p.t - p.b;
+      return {
+        u, W, H, p, x0, x1, y0, y1, iw, ih,
+        X: (v) => p.l + ((v - x0) / (x1 - x0)) * iw,
+        Y: (v) => p.t + (1 - (v - y0) / (y1 - y0)) * ih,
+        invX: (q) => x0 + ((q - p.l) / iw) * (x1 - x0),
+      };
+    }
+
+    function draw() {
+      if (!host.clientWidth || !host.clientHeight) return;
+      g = geometry();
+      const { W, H, p, u } = g, S = [], axis = [];
+      S.push(`<defs><clipPath id="${clip}"><rect x="${p.l}" y="${p.t}" width="${g.iw}" height="${g.ih}"/></clipPath></defs>`);
+      if (cfg.under) S.push(`<g clip-path="url(#${clip})">${cfg.under(g).join("")}</g>`);
+      const step = cfg.yStep || niceStep((g.y1 - g.y0) / Math.max(2, g.ih / (62 * u)));
+      const digits = step >= 1 && step % 1 === 0 ? 0 : Math.max(1, Math.ceil(-Math.log10(step) - 1e-9));
+      const yFmt = cfg.yFmt || ((v) => (Math.abs(v) < 1e-9 ? 0 : v).toFixed(digits).replace("-", "−"));
+      for (let k = Math.ceil(g.y0 / step - 1e-9); k * step <= g.y1 + 1e-9; k++) {
+        const value = k * step || 0, y = px(g.Y(value));   // "|| 0" turns a negative zero into 0
+        axis.push(`<line x1="${p.l}" x2="${W - p.r}" y1="${y}" y2="${y}"/>`, `<text x="${p.l - 8 * u}" y="${y}" dy="0.35em" text-anchor="end">${yFmt(value)}</text>`);
+      }
+      for (const t of cfg.xTicks(g)) axis.push(`<text x="${px(g.X(t.x))}" y="${H - p.b + 18 * u}" text-anchor="middle">${t.text}</text>`);
+      S.push(`<g class="axis">${axis.join("")}</g>`);
+      if (cfg.zero && g.y0 < 0 && g.y1 > 0) S.push(`<line class="zero" x1="${p.l}" x2="${W - p.r}" y1="${px(g.Y(0))}" y2="${px(g.Y(0))}"/>`);
+      S.push(`<g clip-path="url(#${clip})">${cfg.draw(g).join("")}</g>`);
+      if (cfg.over) S.push(cfg.over(g).join(""));
+      if (cfg.title) S.push(`<text class="p-title" x="${p.l}" y="${18 * u}">${cfg.title}</text>`);
+      if (cfg.xTitle) S.push(`<text class="p-title" x="${p.l + g.iw / 2}" y="${H - 8 * u}" text-anchor="middle">${cfg.xTitle}</text>`);
+      base.setAttribute("viewBox", `0 0 ${W} ${H}`); over.setAttribute("viewBox", `0 0 ${W} ${H}`);
+      base.innerHTML = S.join("");
+      if (pointer && !drag) showHover(pointer);
+    }
+
+    const local = (e) => { const r = host.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+    const inside = (q) => g && q.x >= g.p.l && q.x <= g.W - g.p.r && q.y >= g.p.t && q.y <= g.H - g.p.b;
+
+    function hideHover() {
+      if (tip.style.display !== "none") { tip.style.display = "none"; hline.setAttribute("visibility", "hidden"); hdots.innerHTML = ""; }
+      if (cfg.onHover) cfg.onHover(null);
+    }
+    function showHover(q) {
+      const info = cfg.tip && inside(q) ? cfg.tip(g.invX(q.x), g) : null;
+      if (!info) { hideHover(); return; }
+      const x = g.X(info.x);
+      if (cfg.hoverLine !== false) {
+        hline.setAttribute("x1", x); hline.setAttribute("x2", x); hline.setAttribute("y1", g.p.t); hline.setAttribute("y2", g.H - g.p.b);
+        hline.setAttribute("visibility", "visible");
+      }
+      hdots.innerHTML = info.rows.filter((r) => r.y != null && r.y >= g.y0 && r.y <= g.y1)
+        .map((r) => `<circle cx="${px(x)}" cy="${px(g.Y(r.y))}" r="${4.5 * g.u}" fill="${r.color}" stroke="var(--canvas)" stroke-width="${2 * g.u}"/>`).join("");
+      tip.innerHTML = `<div class="tt-title">${info.title}</div>` +
+        info.rows.map((r) => `<div class="tt-row">${r.color ? `<span class="sw" style="--c:${r.color}"></span>` : ""}${r.name}<b>${r.value}</b></div>`).join("") +
+        (info.note ? `<div class="tt-note">${info.note}</div>` : "");
+      tip.style.display = "block";
+      let left = x + 14 * g.u;
+      if (left + tip.offsetWidth > g.W - 4) left = x - tip.offsetWidth - 14 * g.u;
+      tip.style.left = `${Math.max(4, left)}px`; tip.style.top = `${g.p.t + 6}px`;
+      if (cfg.onHover) cfg.onHover(info);
+    }
+
+    function settle() {
+      const zoomed = dom[0] > full[0] + 1e-9 || dom[1] < full[1] - 1e-9;
+      if (resetBtn) resetBtn.hidden = !zoomed;
+      if (cfg.onDomain) cfg.onDomain(dom.slice(), zoomed);
+    }
+    const api = {
+      redraw: draw,
+      domain: () => dom.slice(),
+      // move the x range, smoothly unless ms is 0
+      setX(a, b, ms = 700) {
+        a = Math.max(full[0], a); b = Math.min(full[1], b);
+        stop();
+        const from = dom.slice();
+        stop = tween(ms, (k) => { dom = [lerp(from[0], a, k), lerp(from[1], b, k)]; draw(); if (k === 1) settle(); });
+      },
+      reset(ms) { api.setX(full[0], full[1], ms); },
+    };
+
+    host.addEventListener("pointerdown", (e) => {
+      if (!cfg.zoom || e.button !== 0 || e.target.closest("button")) return;
+      const q = local(e);
+      if (!inside(q)) return;
+      drag = { x: q.x, moved: false };
+      host.setPointerCapture(e.pointerId);
+    });
+    host.addEventListener("pointermove", (e) => {
+      const q = local(e);
+      pointer = q;
+      if (!drag) { showHover(q); return; }
+      const a = clamp(Math.min(drag.x, q.x), g.p.l, g.W - g.p.r), b = clamp(Math.max(drag.x, q.x), g.p.l, g.W - g.p.r);
+      if (b - a > 5) {
+        drag.moved = true; hideHover();
+        brush.setAttribute("x", a); brush.setAttribute("y", g.p.t); brush.setAttribute("width", b - a); brush.setAttribute("height", g.ih);
+        brush.setAttribute("visibility", "visible");
+      }
+    });
+    const endDrag = (e) => {
+      if (!drag) return;
+      const q = local(e), was = drag;
+      drag = null; brush.setAttribute("visibility", "hidden");
+      if (!was.moved) return;
+      const a = g.invX(clamp(Math.min(was.x, q.x), g.p.l, g.W - g.p.r)), b = g.invX(clamp(Math.max(was.x, q.x), g.p.l, g.W - g.p.r));
+      if (b - a >= (cfg.minSpan ?? 1)) api.setX(a, b);
+    };
+    host.addEventListener("pointerup", endDrag);
+    host.addEventListener("pointercancel", endDrag);
+    host.addEventListener("pointerleave", () => { pointer = null; if (!drag) hideHover(); });
+    host.addEventListener("dblclick", (e) => { if (cfg.zoom && !e.target.closest("button")) api.reset(); });
+    if (resetBtn) resetBtn.addEventListener("click", () => api.reset());
+
+    new ResizeObserver(draw).observe(host);
+    draw();
+    return api;
+  }
+  const monthAt = (xv, i0, i1) => clamp(Math.round(xv * 12), i0, i1);
+
+  // ---------- 02 the record ----------
+  const maunakea = new Set(M.maunakea.map((m) => at[m]));
+  const mkA = at[M.maunakea[0]], mkB = at[M.maunakea[M.maunakea.length - 1]];
+  $("dataset-lede").textContent = `Monthly mean CO₂ measured at Mauna Loa, Hawaii, from ${period(M.record)}: ${M.record_months} values.`;
+  $("record-key").innerHTML =
+    `<li><span class="sw" style="--c:var(--observed)"></span>Training, ${period(M.train)}</li>` +
+    `<li><span class="sw" style="--c:var(--accent)"></span>Held out, ${period(M.held_out)}</li>`;
+  const INTERP = [...new Set([...M.interpolated, "1984-04"])].sort(); // Apr 1984: 2 measured days, flagged by NOAA's negative st.dev
+  $("split-kv").innerHTML =
+    `<div><dt>Scripps months<small>${period([M.record[0], M.scripps_until])}</small></dt><dd>${at[M.scripps_until] + 1} months</dd></div>` +
+    `<div><dt>Interpolated NOAA months<small>${INTERP.map((m) => label(at[m])).join(", ")}</small></dt><dd>${INTERP.length} months</dd></div>` +
+    `<div><dt>Measured at Maunakea<small>${period([M.maunakea[0], M.maunakea[M.maunakea.length - 1]])}</small></dt><dd>${M.maunakea.length} months</dd></div>`;
+  makeChart($("g-record"), {
+    label: `Monthly mean CO2 at Mauna Loa from ${label(0)} to ${label(iLast)}, rising from ${f1(obs[0])} to ${f1(obs[iLast])} ppm. Training months up to ${label(iTrainEnd)} and held-out months after that are drawn in different colours.`,
+    title: "CO₂ (ppm)", x: [0, T(iLast)], y: yFit([obs], 0, iLast), zoom: true, xTicks: timeTicks,
+    under: (g) => [band(g, T(iHeld) - 1 / 24, T(iLast) + 1, "var(--band-heldout)", "Held out"),
+                   band(g, T(mkA) - 1 / 24, T(mkB) + 1 / 24, "color-mix(in srgb, var(--c-seasonal) 20%, transparent)")],
+    draw: (g) => {
+      const close = g.x1 - g.x0 <= 9;
+      return [
+        stroke(pathMonths(g, obs, 0, iHeld - 1), OBSERVED, 1.6 * g.u, close ? 'stroke-opacity="0.5"' : ""),
+        stroke(pathMonths(g, obs, iHeld - 1, iLast), "var(--accent)", 1.8 * g.u, close ? 'stroke-opacity="0.6"' : ""),
+        close ? dotsMonths(g, obs, 0, iHeld - 1, OBSERVED, 2.6 * g.u) + dotsMonths(g, obs, iHeld, iLast, "var(--accent)", 2.6 * g.u) : "",
+      ];
+    },
+    over: (g) => {
+      const x = g.X(T(mkA) - 1 / 24);
+      return x > g.p.l + 150 * g.u && x < g.W - g.p.r
+        ? [`<text class="note-t soft" x="${px(x - 6 * g.u)}" y="${g.H - g.p.b - 10 * g.u}" text-anchor="end">Maunakea site, ${label(mkA)} to ${label(mkB)}</text>`] : [];
+    },
+    tip: (xv) => {
+      const i = monthAt(xv, 0, iLast), held = i >= iHeld;
+      return { x: T(i), title: label(i), note: maunakea.has(i) ? "Measured at Maunakea" : "",
+               rows: [{ color: held ? "var(--accent)" : OBSERVED, name: held ? "Held out" : "Training", value: ppm(obs[i]), y: obs[i] }] };
+    },
+  });
+
+  // ---------- small MathML builders, for the equations that carry fitted numbers ----------
+  const mi = (s) => `<mi>${s}</mi>`, mn = (s) => `<mn>${s}</mn>`, mo = (s) => `<mo>${s}</mo>`;
+  const sub = (a, b) => `<msub>${a}${b}</msub>`, sup = (a, b) => `<msup>${a}${b}</msup>`;
+  const paren = (s) => `<mo stretchy="false">(</mo>${s}<mo stretchy="false">)</mo>`;
+  const math = (s, block) => `<math${block ? ' display="block"' : ""}><mrow>${s}</mrow></math>`;
+  const HAT_C = `<mover accent="true"><mi>y</mi><mo stretchy="false">^</mo></mover>`;
+  // a magnitude with 4 significant digits, or mantissa × 10^k when it is tiny
+  function magnitude(v) {
+    const a = Math.abs(v);
+    if (a !== 0 && a < 1e-3) {
+      const e = Math.floor(Math.log10(a));
+      return mn((a / Math.pow(10, e)).toPrecision(3)) + mo("×") + sup(mn(10), `<mrow>${mo("−")}${mn(-e)}</mrow>`);
+    }
+    return mn(String(parseFloat(a.toPrecision(4))));
+  }
+  const tPower = (k) => (k === 1 ? mi("t") : sup(mi("t"), mn(k)));
+
+  // ---------- 03 one straight line ----------
+  $("lin-cap").textContent = `Fitted on ${period(M.train)}`;
+  $("lin-eq").innerHTML = math(HAT_C + paren(mi("t")) + mo("=") + mn(f2(P.linear.intercept)) + mo("+") + mn(f3(P.linear.slope)) + mi("t"), true);
+  $("lin-b0").textContent = f2(P.linear.intercept);
+  $("lin-b1").textContent = f3(P.linear.slope);
+  makeChart($("g-linear"), {
+    label: `Measured CO2 from ${label(0)} to ${label(iTrainEnd)} with the fitted straight line: ${f2(P.linear.intercept)} ppm plus ${f3(P.linear.slope)} ppm per year.`,
+    title: "CO₂ (ppm)", x: [0, T(iTrainEnd)], y: yFit([obs, linearAt], 0, iTrainEnd), zoom: true, xTicks: timeTicks,
+    draw: (g) => [...measured(g, 0, iTrainEnd), stroke(pathFn(g, linearAt, 0, T(iTrainEnd)), LINEAR, 2.6 * g.u)],
+    tip: (xv) => {
+      const i = monthAt(xv, 0, iTrainEnd), fit = linearAt(T(i));
+      return { x: T(i), title: label(i), rows: [
+        { color: OBSERVED, name: "Measured", value: ppm(obs[i]), y: obs[i] },
+        { color: LINEAR, name: "Fitted line", value: ppm(fit), y: fit },
+        { name: "Residual", value: sppm(obs[i] - fit) }] };
+    },
+  });
+
+  // ---------- 04 what the line leaves behind ----------
+  const resid = obs.map((v, i) => (v == null || i > iTrainEnd ? null : v - linearAt(T(i))));
+  const trainResid = resid.slice(0, iTrainEnd + 1);
+  const ZOOM_YEARS = [1983, 1987];   // the flattest five years of the residual's yearly mean, so only the yearly wave is left
+  const zoomA = at[`${ZOOM_YEARS[0]}-01`], zoomB = at[`${ZOOM_YEARS[1]}-12`];
+  const swing = mean(Array.from({ length: ZOOM_YEARS[1] - ZOOM_YEARS[0] + 1 }, (_, k) => {
+    const year = trainResid.slice(at[`${ZOOM_YEARS[0] + k}-01`], at[`${ZOOM_YEARS[0] + k}-12`] + 1);
+    return Math.max(...year) - Math.min(...year);
+  }));
+  $("resid-zoom").textContent = `Zoom into ${ZOOM_YEARS[0]}–${ZOOM_YEARS[1]}`;
+
+ $("find-full-text").innerHTML = 
+  `<b>U-shape</b><br>` +
+  `· ${f1(Math.max(...trainResid.slice(0, 120)))} ppm too low in the first years<br>` +
+  `· ${f1(Math.max(...trainResid.slice(-120)))} ppm too low in the last years<br>` +
+  `· up to ${f1(-Math.min(...trainResid))} ppm too high in between`;
+
+  $("find-zoom-text").innerHTML = 
+  `<b>A wave once a year.</b><br>` +
+  `· The residual rises and falls by about ${f1(swing)} ppm every twelve months.`;
+  const cResid = makeChart($("g-resid"), {
+    label: `Residuals of the straight line from ${label(0)} to ${label(iTrainEnd)}: a U-shape between ${f1(Math.min(...trainResid))} and ${f1(Math.max(...trainResid))} ppm, with a wave that repeats every year.`,
+    title: "Residual (ppm)", x: [0, T(iTrainEnd)], zero: true, zoom: true, resetButton: false, xTicks: timeTicks,
+    y: [Math.floor(Math.min(...trainResid) - 0.6), Math.ceil(Math.max(...trainResid) + 0.6)],   // fixed: zooming never changes the values
+    draw: (g) => {
+      const close = g.x1 - g.x0 <= 9;
+      return [stroke(pathMonths(g, resid, 0, iTrainEnd), LINEAR, (close ? 2 : 1.5) * g.u), close ? dotsMonths(g, resid, 0, iTrainEnd, LINEAR, 3 * g.u) : ""];
+    },
+    tip: (xv) => {
+      const i = monthAt(xv, 0, iTrainEnd);
+      return { x: T(i), title: label(i), rows: [
+        { color: LINEAR, name: "Residual", value: sppm(resid[i]), y: resid[i] },
+        { name: "Measured", value: ppm(obs[i]) }, { name: "Fitted line", value: ppm(linearAt(T(i))) }] };
+    },
+    onDomain: ([a, b], zoomed) => {
+      const several = zoomed && b - a <= 10;
+      $("find-full").classList.toggle("on", !several);
+      $("find-zoom").classList.toggle("on", several);
+      $("resid-reset").disabled = !zoomed;
+    },
+  });
+  $("resid-zoom").addEventListener("click", () => cResid.setX(T(zoomA) - 1 / 24, T(zoomB) + 1 / 24, 1200));
+  $("resid-reset").addEventListener("click", () => cResid.reset(1200));
+
+  // ---------- 05 one line per decade ----------
+  const decades = P.decades, nDec = decades.length;
+  const decadeColor = (k) => `color-mix(in oklab, var(--m-linear) ${Math.round(46 + (54 * k) / Math.max(1, nDec - 1))}%, var(--canvas))`;
+  const decadeName = (d) => (d.months < 120 ? `${d.decade}–${String(d.decade + d.months / 12 - 1).slice(2)}` : `${d.decade}s`);
+  const decadeLine = (d) => (t) => d.intercept + d.slope * t;
+  const decadeAt = (t) => decades.findIndex((d) => t >= d.t_start - 1 / 24 && t <= d.t_end + 1 / 24);
+  let hot = -1, cDecades = null, cSlopes = null;
+  const setHot = (k) => { if (k === hot) return; hot = k; cDecades.redraw(); cSlopes.redraw(); };
+  const first = decades[0], last = decades[nDec - 1];
+ 
+  cDecades = makeChart($("g-decades"), {
+    label: `Measured CO2 with a separate straight line for each decade. Slopes in ppm per year: ${decades.map((d) => `${decadeName(d)} ${f2(d.slope)}`).join(", ")}.`,
+    title: "CO₂ (ppm)", x: [0, T(iTrainEnd)], y: yFit([obs], 0, iTrainEnd), xTicks: timeTicks,
+    draw: (g) => [stroke(pathMonths(g, obs, 0, iTrainEnd), OBSERVED, 1.3 * g.u, 'stroke-opacity="0.4"'),
+      ...decades.map((d, k) => stroke(pathFn(g, decadeLine(d), d.t_start, d.t_end), decadeColor(k), (k === hot ? 5 : 3.4) * g.u, hot >= 0 && k !== hot ? 'stroke-opacity="0.45"' : ""))],
+    over: (g) => decades.map((d, k) => {
+      const mid = (d.t_start + d.t_end) / 2;
+      return `<text class="note-t" x="${px(g.X(mid))}" y="${px(g.Y(decadeLine(d)(mid)) - 22 * g.u)}" text-anchor="middle"${hot >= 0 && k !== hot ? ' opacity="0.45"' : ""}>${f2(d.slope)}</text>`;
+    }),
+    tip: (xv) => {
+      const i = monthAt(xv, 0, iTrainEnd), k = decadeAt(T(i)), rows = [{ color: OBSERVED, name: "Measured", value: ppm(obs[i]), y: obs[i] }];
+      if (k >= 0) {
+        const fit = decadeLine(decades[k])(T(i));
+        rows.push({ color: decadeColor(k), name: `${decadeName(decades[k])} line`, value: ppm(fit), y: fit }, { name: "Its slope", value: `${f2(decades[k].slope)} ppm/yr` });
+      }
+      return { x: T(i), title: label(i), rows, decade: k };
+    },
+    onHover: (info) => setHot(info ? info.decade : -1),
+  });
+  cSlopes = makeChart($("g-slopes"), {
+    label: `Fitted growth rate for each decade in ppm per year, against the ${f2(P.linear.slope)} ppm per year of the single line.`,
+    title: "Slope (ppm per year)", x: [-0.6, nDec - 0.4], y: [0, Math.ceil(Math.max(...decades.map((d) => d.slope)) * 1.25 * 2) / 2], yStep: 0.5, hoverLine: false,
+    xTicks: () => decades.map((d, k) => ({ x: k, text: decadeName(d) })),
+    draw: (g) => {
+      const w = (g.iw / nDec) * 0.62, y0 = g.Y(0), yLine = px(g.Y(P.linear.slope));
+      return [
+        ...decades.map((d, k) => `<rect x="${px(g.X(k) - w / 2)}" y="${px(g.Y(d.slope))}" width="${px(w)}" height="${px(y0 - g.Y(d.slope))}" rx="${3 * g.u}" fill="${decadeColor(k)}"${hot >= 0 && k !== hot ? ' fill-opacity="0.45"' : ""}/>`),
+        `<line x1="${g.p.l}" x2="${g.W - g.p.r}" y1="${yLine}" y2="${yLine}" stroke="var(--text-secondary)" stroke-width="${1.6 * g.u}" stroke-dasharray="${6 * g.u} ${5 * g.u}"/>`,
+      ];
+    },
+    over: (g) => [
+      ...decades.map((d, k) => `<text class="note-t" x="${px(g.X(k))}" y="${px(g.Y(d.slope) - 8 * g.u)}" text-anchor="middle">${f2(d.slope)}</text>`),
+      `<text class="note-t soft" x="${g.p.l + 8 * g.u}" y="${px(g.Y(P.linear.slope) - 8 * g.u)}">one line: ${f2(P.linear.slope)}</text>`,
+    ],
+    tip: (xv) => {
+      const k = clamp(Math.round(xv), 0, nDec - 1), d = decades[k];
+      return { x: k, title: decadeName(d), decade: k, rows: [
+        { color: decadeColor(k), name: "Slope", value: `${f2(d.slope)} ppm/yr` }, { name: "Months fitted", value: d.months },
+        { name: "Against one line", value: `${signed(d.slope - P.linear.slope)} ppm/yr` }] };
+    },
+    onHover: (info) => setHot(info ? info.decade : -1),
+  });
+
+  // ---------- 06 polynomial degree ----------
+  const degrees = Object.keys(P.polynomial).map(Number);
+  let degree = degrees[0], degreeFrom = degrees[0], degreeMix = 1, stopDegree = () => {};
+  const polyCurve = (t) => {
+    const now = poly(P.polynomial[degree].coef, t);
+    return degreeMix < 1 ? lerp(poly(P.polynomial[degreeFrom].coef, t), now, degreeMix) : now;
+  };
+  const cPoly = makeChart($("g-poly"), {
+    label: `Measured CO2 from ${label(0)} to ${label(iTrainEnd)} with a polynomial fit; the degree, 1 to ${degrees[degrees.length - 1]}, is chosen with the buttons.`,
+    title: "CO₂ (ppm)", x: [0, T(iTrainEnd)], y: yFit([obs], 0, iTrainEnd), zoom: true, xTicks: timeTicks,
+    draw: (g) => [...measured(g, 0, iTrainEnd), stroke(pathFn(g, polyCurve, 0, T(iTrainEnd)), POLY, 2.8 * g.u)],
+    tip: (xv) => {
+      const i = monthAt(xv, 0, iTrainEnd), fit = poly(P.polynomial[degree].coef, T(i));
+      return { x: T(i), title: label(i), rows: [
+        { color: OBSERVED, name: "Measured", value: ppm(obs[i]), y: obs[i] },
+        { color: POLY, name: `Degree ${degree}`, value: ppm(fit), y: fit },
+        { name: "Residual", value: sppm(obs[i] - fit) }] };
+    },
+  });
+  function showDegree() {
+    const fit = P.polynomial[degree], c = fit.coef_per_year;
+    $("poly-cap").textContent = `Fitted, degree ${degree}`;
+    $("poly-eq").innerHTML = `<span>${math(HAT_C + paren(mi("t")) + mo("="))}</span><span>${math(mn(f2(c[0])))}</span>` +
+      c.slice(1).map((v, k) => `<span></span><span>${math(`<mo form="infix">${v < 0 ? "−" : "+"}</mo>` + magnitude(v) + mo("&#x2062;") + tPower(k + 1))}</span>`).join("");
+    $("poly-rmse").textContent = `${f3(fit.train_rmse)} ppm`;
+    document.querySelectorAll("#deg-seg button").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.d === degree)));
+  }
+  $("deg-seg").innerHTML = degrees.map((d) => `<button type="button" data-d="${d}">${d}</button>`).join("");
+  $("deg-seg").addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b || +b.dataset.d === degree) return;
+    stopDegree();
+    degreeFrom = degree; degree = +b.dataset.d; degreeMix = 0;
+    showDegree();
+    stopDegree = tween(420, (k) => { degreeMix = k; cPoly.redraw(); });
+  });
+  showDegree();
+
+  // ---------- 07 harmonics on a fixed quadratic trend ----------
+  const counts = Object.keys(P.harmonic.fits).map(Number);
+  const harmonicFit = Object.fromEntries(counts.map((h) => [h, trendPlusWaves(P.harmonic.fits[h].coef, P.harmonic.trend_degree + 1)]));
+  const HARMONIC_YEARS = [2005, 2007];
+  const hA = at[`${HARMONIC_YEARS[0]}-01`], hB = at[`${HARMONIC_YEARS[1]}-12`], hX = [T(hA) - 1 / 12, T(hB) + 1 / 12];
+  let hLo = Infinity, hHi = -Infinity;
+  for (let i = hA; i <= hB; i++) { hLo = Math.min(hLo, obs[i]); hHi = Math.max(hHi, obs[i]); }
+  for (const h of counts) for (let x = hX[0]; x <= hX[1]; x += 1 / 120) { const v = harmonicFit[h](x); hLo = Math.min(hLo, v); hHi = Math.max(hHi, v); }
+  let count = counts[0], countFrom = counts[0], countMix = 1, stopCount = () => {};
+  const harmonicCurve = (t) => {
+    const now = harmonicFit[count](t);
+    return countMix < 1 ? lerp(harmonicFit[countFrom](t), now, countMix) : now;
+  };
+  $("harm-hint");
+  const cHarm = makeChart($("g-harm"), {
+    label: `Monthly CO2 from ${label(hA)} to ${label(hB)} with the fitted quadratic trend plus 1 to ${counts[counts.length - 1]} harmonics, chosen with the buttons.`,
+    title: "CO₂ (ppm)", x: hX, y: [Math.floor(hLo - 0.6), Math.ceil(hHi + 0.6)], xTicks: timeTicks,
+    draw: (g) => [stroke(pathFn(g, harmonicCurve, hX[0], hX[1]), POLY, 3 * g.u), dotsMonths(g, obs, hA, hB, OBSERVED, 4 * g.u)],
+    tip: (xv) => {
+      const i = monthAt(xv, hA, hB), fit = harmonicFit[count](T(i));
+      return { x: T(i), title: label(i), rows: [
+        { color: OBSERVED, name: "Measured", value: ppm(obs[i]), y: obs[i] },
+        { color: POLY, name: `Trend + ${count} harmonic${count > 1 ? "s" : ""}`, value: ppm(fit), y: fit },
+        { name: "Residual", value: sppm(obs[i] - fit) }] };
+    },
+  });
+  function showCount() {
+    const fit = P.harmonic.fits[count];
+    $("harm-key").textContent = `Quadratic trend + ${count} harmonic${count > 1 ? "s" : ""}`;
+    $("harm-chips").innerHTML = `<div class="lead" style="--m:var(--m-polynomial_seasonal)"><dt>Training RMSE</dt><dd>${f3(fit.train_rmse)} ppm</dd></div>`;
+    document.querySelectorAll("#harm-seg button").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.h === count)));
+  }
+  $("harm-seg").innerHTML = counts.map((h) => `<button type="button" data-h="${h}">${h}</button>`).join("");
+  $("harm-seg").addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b || +b.dataset.h === count) return;
+    stopCount();
+    countFrom = count; count = +b.dataset.h; countMix = 0;
+    showCount();
+    stopCount = tween(420, (k) => { countMix = k; cHarm.redraw(); });
+  });
+  showCount();
+
+  // ---------- 08 and 12: a system of equations is a matrix times a vector ----------
+  const known = (s) => `<mrow class="known">${s}</mrow>`, unknown = (s) => `<mrow class="unk">${s}</mrow>`;
+  const tSub = (s) => sub(mi("t"), s);
+  const trig = (name, s) => `${mi(name)}<mo>&#x2061;</mo>${paren(mn(2) + mi("π") + tSub(s))}`;
+  const times = mo("&#x2062;");
+  const cellOf = (s, cls = "") => `<span class="${cls}">${math(s)}</span>`;
+  const vector = (items, cls) => `<div class="mx" style="grid-template-columns:auto">${items.map((s) => cellOf(s, cls)).join("")}</div>`;
+  // terms: [coefficient, known factor as a function of the row subscript]
+  function system(host, terms, form, formTag) {
+    const subs = [mn(0), mn(1), null, mi("n")];
+    const equation = (s) => math(sub(mi("y"), s) + mo("=") + terms.map(([coef, factor], k) =>
+      (k ? mo("+") : "") + unknown(coef) + (k ? times : mo("·")) + known(factor(s))).join(""), true);
+    const matrixRows = subs.map((s) => terms.map(([, factor]) => cellOf(s ? factor(s) : mo("⋮"), "known")).join("")).join("");
+    host.innerHTML =
+      `<div class="ols-eqs">${subs.map((s) => (s ? equation(s) : `<span class="vdots">${math(mo("⋮"), true)}</span>`)).join("")}</div>` +
+      `<svg class="ols-arrow" width="56" height="28" viewBox="0 0 56 28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 14h48M39 4l12 10-12 10"/></svg>` +
+      `<div class="ols-right"><div class="mxeq">` +
+        vector(subs.map((s) => (s ? sub(mi("y"), s) : mo("⋮"))), "") +
+        `<span class="mx-op">${math(mo("="))}</span>` +
+        `<div class="mx" style="grid-template-columns:repeat(${terms.length},auto)">${matrixRows}</div>` +
+        vector(terms.map(([coef]) => coef), "unk") +
+        `<span class="mx-op">${math(`<mo form="infix">+</mo>` + mi("ε"))}</span>` +
+        `<span class="mx-cap">Measured</span><span></span><span class="mx-cap known">Design matrix X: known numbers</span>` +
+        `<span class="mx-cap unk">Coefficients θ: unknown</span><span></span>` +
+      `</div><div class="ols-form"><div class="eq">${math(form, true)}</div>${formTag ? `<span class="tag plain">${formTag}</span>` : ""}</div></div>`;
+  }
+  system($("ols-poly"), [
+    [sub(mi("a"), mn(0)), () => mn(1)],
+    [sub(mi("a"), mn(1)), (s) => tSub(s)],
+    [sub(mi("a"), mn(2)), (s) => `<msubsup>${mi("t")}${s}${mn(2)}</msubsup>`],
+    [sub(mi("b"), mn(0)), (s) => trig("sin", s)],
+    [sub(mi("b"), mn(1)), (s) => trig("cos", s)],
+  ], `<mi mathvariant="bold">y</mi>${mo("=")}${mi("X")}${mi("θ")}${mo("+")}${mi("ε")}`);
+  system($("ols-exp"), [
+    [sub(mi("c"), mn(0)), () => mn(1)],
+    [mi("a"), (s) => sup(mi("e"), `<mrow>${mi("r")}${tSub(s)}</mrow>`)],
+    [sub(mi("b"), mn(1)), (s) => trig("sin", s)],
+    [sub(mi("d"), mn(1)), (s) => trig("cos", s)],
+  ], `<mi mathvariant="bold">y</mi>${mo("=")}${mi("X")}${paren(mi("r"))}${mi("θ")}${mo("+")}${mi("ε")}`, "with r fixed");
+
+  // ---------- 09 choosing degree and harmonics ----------
+  const S = P.selection, bestCell = S.best;
+  $("timeline").style.gridTemplateColumns = `${M.fit_months}fr ${M.validation_months}fr ${M.held_out_months}fr`;
+  $("timeline").innerHTML =
+    `<span></span><span class="tl-mid"><b>Validation</b> · ${period(M.validation)} · ${M.validation_months} months</span><span></span>` +
+    `<span class="tl-bar" style="--c:color-mix(in srgb, var(--text-muted) 55%, var(--surface-1))"></span>` +
+    `<span class="tl-bar" style="--c:var(--m-polynomial_seasonal)"></span><span class="tl-bar" style="--c:var(--accent)"></span>` +
+    `<span class="tl-start"><b>Fitting</b> · ${period(M.fit)} · ${M.fit_months} months</span><span></span>` +
+    `<span class="tl-end"><b>Held out</b> · ${period(M.held_out)} · ${M.held_out_months} months · untouched</span>`;
+  const allErrors = S.val_rmse.flat(), lnLo = Math.log(Math.min(...allErrors)), lnHi = Math.log(Math.max(...allErrors));
+  $("heat").innerHTML =
+    `<thead><tr><th scope="col">Degree</th>${S.harmonics.map((h) => `<th scope="col">h = ${h}</th>`).join("")}</tr></thead><tbody>` +
+    S.degrees.map((d, r) => `<tr><th scope="row">${d}</th>` + S.harmonics.map((h, c) => {
+      const v = S.val_rmse[r][c], share = 5 + (95 * (Math.log(v) - lnLo)) / (lnHi - lnLo), best = d === bestCell.degree && h === bestCell.harmonics;
+      return `<td data-r="${r}" data-c="${c}"${best ? ' class="best"' : ""} style="--c:color-mix(in oklab, var(--heat) ${share.toFixed(1)}%, var(--surface-1))">${f3(v)}</td>`;
+    }).join("") + "</tr>").join("") + "</tbody>";
+  $("heat-note").innerHTML = `Each cell: fitted on ${period(M.fit)}, scored on ${period(M.validation)}. Outlined: the lowest error. ` +
+    `Columns: number of harmonics h. The search also covered ${S.searched.harmonics[0]} and ${S.harmonics[S.harmonics.length - 1] + 1} to ${S.searched.harmonics[1]} harmonics; no other combination scored lower.`;
+  $("sel-result").innerHTML = `Degree <b>${bestCell.degree}</b> with <b>${bestCell.harmonics}</b> harmonics`;
+  $("sel-text").innerHTML = `Validation RMSE <b>${f3(bestCell.val_rmse)} ppm</b>, the lowest of all combinations.`;
+  const heatTip = $("heat-tip"), heatWrap = heatTip.parentElement;
+  $("heat").addEventListener("pointermove", (e) => {
+    const td = e.target.closest("td");
+    if (!td) { heatTip.style.display = "none"; return; }
+    const r = +td.dataset.r, c = +td.dataset.c;
+    heatTip.innerHTML = `<div class="tt-title">Degree ${S.degrees[r]}, ${S.harmonics[c]} harmonic${S.harmonics[c] > 1 ? "s" : ""}</div>` +
+      `<div class="tt-row">Validation RMSE<b>${f3(S.val_rmse[r][c])} ppm</b></div>` +
+      `<div class="tt-row">RMSE on the fitting months<b>${f3(S.fit_rmse[r][c])} ppm</b></div>` +
+      `<div class="tt-row">Coefficients<b>${S.parameters[r][c]}</b></div>`;
+    heatTip.style.display = "block";
+    const box = heatWrap.getBoundingClientRect(), cell = td.getBoundingClientRect();
+    let left = cell.right - box.left + 8;
+    if (left + heatTip.offsetWidth > box.width) left = cell.left - box.left - heatTip.offsetWidth - 8;
+    heatTip.style.left = `${left}px`; heatTip.style.top = `${cell.top - box.top}px`;
+  });
+  $("heat").addEventListener("pointerleave", () => { heatTip.style.display = "none"; });
+
+  // ---------- 10 and 14: a complete fitted model on the training years ----------
+  function fittedChart(host, f, color, name) {
+    return makeChart(host, {
+      label: `Measured CO2 from ${label(0)} to ${label(iTrainEnd)} with the ${name.toLowerCase()}.`,
+      title: "CO₂ (ppm)", x: [0, T(iTrainEnd)], y: yFit([obs, f], 0, iTrainEnd), zoom: true, xTicks: timeTicks,
+      draw: (g) => [...measured(g, 0, iTrainEnd), stroke(pathFn(g, f, 0, T(iTrainEnd)), color, (g.x1 - g.x0 <= 9 ? 2.6 : 1.7) * g.u)],
+      tip: (xv) => {
+        const i = monthAt(xv, 0, iTrainEnd), fit = f(T(i));
+        return { x: T(i), title: label(i), rows: [
+          { color: OBSERVED, name: "Measured", value: ppm(obs[i]), y: obs[i] },
+          { color, name: "Fitted", value: ppm(fit), y: fit },
+          { name: "Residual", value: sppm(obs[i] - fit) }] };
+      },
+    });
+  }
+  const sel = P.selected, trend = sel.trend_per_year;
+  $("selected-lede").textContent = `The validated choice: a quadratic trend plus ${sel.harmonics} harmonics.`;
+  $("selected-chips").innerHTML =
+    `<div class="lead"><dt>Chosen</dt><dd>d = ${sel.degree}, h = ${sel.harmonics}</dd></div>` +
+    `<div><dt>Fitted trend, with t in years</dt><dd>${math(mn(f2(trend[0])) + trend.slice(1).map((v, k) => mo(v < 0 ? "−" : "+") + magnitude(v) + times + tPower(k + 1)).join(""))}</dd></div>`+
+    `<div><dt>Training RMSE</dt><dd>${f3(sel.train_rmse)} ppm</dd></div>`;
+  fittedChart($("g-selected"), selectedAt, POLY, `Polynomial of degree ${sel.degree} with ${sel.harmonics} harmonics`);
+  $("expfit-chips").innerHTML =
+    `<div class="lead"><dt>Fitted growth rate</dt><dd>r* = ${E.rate.toFixed(4)} per year</dd></div>` +
+    `<div><dt>${math(sub(mi("c"), mn(0)))}</dt><dd>${f2(E.c0)} ppm</dd></div>` +
+    `<div><dt>${math(mi("a"))}</dt><dd>${f2(E.a)} ppm</dd></div>` +
+    `<div><dt>Harmonics</dt><dd>h = ${E.harmonics}</dd></div>` +
+    `<div><dt>Training RMSE</dt><dd>${f3(E.train_rmse)} ppm</dd></div>`;
+  fittedChart($("g-expfit"), expAt, EXPO, `Exponential model with ${E.harmonics} harmonics`);
+
+  // ---------- 11 the exponential function, as in the notebook: x from 0 to 100, fixed axes, r on a slider ----------
+  const EXP_X = [0, 100], EXP_Y_MAX = Math.exp(0.1 * 100) * 1.05;
+  const slider = $("r-slider");
+  let rate = +slider.value;
+  const group = (v) => Math.round(v).toLocaleString("en-US");
+  const large = (v) => {
+    if (v < 1000) return String(parseFloat(v.toPrecision(4)));
+    if (v < 1e6) return group(v);
+    const e = Math.floor(Math.log10(v));
+    return `${(v / Math.pow(10, e)).toFixed(2)} × 10<sup>${e}</sup>`;
+  };
+  const cExp = makeChart($("g-exp"), {
+    label: "The function y equals e to the power r times x, for x from 0 to 100, with the growth rate r set by the slider.",
+    xTitle: "x", x: EXP_X, y: [0, EXP_Y_MAX], yStep: 5000, yFmt: group, padL: 62,
+    xTicks: () => [0, 20, 40, 60, 80, 100].map((x) => ({ x, text: String(x) })),
+    draw: (g) => [stroke(pathFn(g, (x) => Math.min(Math.exp(rate * x), EXP_Y_MAX * 3), EXP_X[0], EXP_X[1]), "var(--accent)", 3 * g.u)],
+    tip: (xv) => {
+      const x = clamp(Math.round(xv), EXP_X[0], EXP_X[1]), y = Math.exp(rate * x);
+      return { x, title: `x = ${x}`, rows: [{ color: "var(--accent)", name: `e<sup>${rate.toFixed(3)}·${x}</sup>`, value: large(y), y }] };
+    },
+  });
+  function showRate() {
+    rate = +slider.value;
+    $("r-out").textContent = `r = ${rate.toFixed(3)}`;
+    $("r-f100").innerHTML = large(Math.exp(rate * 100));
+    slider.setAttribute("aria-valuetext", `r = ${rate.toFixed(3)}`);
+    cExp.redraw();
+  }
+  slider.addEventListener("input", showRate);
+  showRate();
+
+  // ---------- 13 the training error as a function of r ----------
+  const scan = E.scan, scanMax = Math.max(...scan.rmse);
+  $("rate-chips").innerHTML = `<div class="lead"><dt>Best growth rate</dt><dd>r* = ${E.rate.toFixed(4)} per year</dd></div><div><dt>Training RMSE there</dt><dd>${f3(E.train_rmse)} ppm</dd></div>`;
+  makeChart($("g-rate"), {
+    label: `Training RMSE of the exponential model for growth rates r from ${E.bounds[0]} to ${E.bounds[1]}. The minimum, ${f3(E.train_rmse)} ppm, is at r equal to ${E.rate.toFixed(4)}.`,
+    title: "Training RMSE (ppm)", xTitle: "Growth rate r (per year)", x: E.bounds.slice(), y: [0, Math.ceil(scanMax + 0.5)],
+    xTicks: () => [0.005, 0.02, 0.04, 0.06, 0.08, 0.1].map((x) => ({ x, text: String(x) })),
+    draw: (g) => {
+      const x = px(g.X(E.rate));
+      return [
+        `<line x1="${x}" x2="${x}" y1="${g.p.t}" y2="${g.H - g.p.b}" stroke="${EXPO}" stroke-width="${1.4 * g.u}" stroke-dasharray="${5 * g.u} ${4 * g.u}" stroke-opacity="0.7"/>`,
+        stroke(scan.rate.map((r, k) => `${k ? "L" : "M"}${px(g.X(r))},${px(g.Y(scan.rmse[k]))}`).join(""), EXPO, 2.8 * g.u),
+        `<circle cx="${x}" cy="${px(g.Y(E.train_rmse))}" r="${6 * g.u}" fill="${EXPO}" stroke="var(--canvas)" stroke-width="${2.5 * g.u}"/>`,
+      ];
+    },
+    over: (g) => {
+      const x = g.X(E.rate), y = g.Y(E.train_rmse);
+      return [`<line x1="${px(x + 10 * g.u)}" x2="${px(x + 52 * g.u)}" y1="${px(y)}" y2="${px(y)}" stroke="var(--text-muted)" stroke-width="${g.u}"/>`,
+              `<text class="note-t" x="${px(x + 58 * g.u)}" y="${px(y)}" dy="0.35em">r* = ${E.rate.toFixed(4)}, RMSE ${f3(E.train_rmse)} ppm</text>`];
+    },
+    tip: (xv) => {
+      const k = clamp(Math.round((xv - scan.rate[0]) / (scan.rate[1] - scan.rate[0])), 0, scan.rate.length - 1);
+      return { x: scan.rate[k], title: `r = ${scan.rate[k].toFixed(4)}`, rows: [{ color: EXPO, name: "Training RMSE", value: `${f3(scan.rmse[k])} ppm`, y: scan.rmse[k] }] };
+    },
+  });
+
+  // ---------- 16 the comparison table ----------
+  const rowName = {
+    linear: ["Linear", `${P.metrics[0].parameters} coefficients`],
+    polynomial_seasonal: [`Polynomial, degree ${sel.degree} + ${sel.harmonics} harmonics`, `${sel.parameters} coefficients`],
+    exponential_seasonal: [`Exponential + ${E.harmonics} harmonics`, `${E.coef.length} coefficients`],
+  };
+  const columns = [["train_mae", "Train MAE"], ["train_rmse", "Train RMSE"], ["test_mae", "Test MAE"], ["test_rmse", "Test RMSE"]];
+  const lowest = Object.fromEntries(columns.map(([key]) => [key, Math.min(...P.metrics.map((m) => m[key]))]));
+  $("comparison-lede").textContent = `Training and held-out errors for all three models, measured in ppm.`;
+  $("results").innerHTML =
+    `<thead><tr><th scope="col">Model</th>${columns.map(([, name]) => `<th scope="col">${name}</th>`).join("")}</tr></thead><tbody>` +
+    P.metrics.map((m) => `<tr><td><span class="sw" style="--c:var(--m-${m.key})"></span>${rowName[m.key][0]}<small>${rowName[m.key][1]}</small></td>` +
+      columns.map(([key]) => `<td${m[key] === lowest[key] ? ' class="low"' : ""}>${f3(m[key])}</td>`).join("") + "</tr>").join("") + "</tbody>";
+
+  // ---------- 17 the embedded forecaster grows to its full height, so the page scrolls instead of the frame ----------
+  const live = $("live");
+  live.addEventListener("load", () => {
+    try {
+      const doc = live.contentDocument, fit = () => { live.style.height = `${doc.getElementById("explorer").scrollHeight}px`; };
+      fit();
+      new ResizeObserver(fit).observe(doc.getElementById("explorer"));
+    } catch (e) { live.removeAttribute("scrolling"); /* opened from disk: the frame keeps its own scrollbar */ }
+  });
+
+  // ---------- the menu: sections, current section, keys, notes, theme ----------
+  const slides = [...document.querySelectorAll(".slide")], nav = $("rail-nav");
+  let html = "", group0 = null;
+  slides.forEach((s, k) => {
+    if (s.dataset.group !== group0) { html += `${group0 === null ? "" : "</ol>"}<p class="grp">${s.dataset.group}</p><ol>`; group0 = s.dataset.group; }
+    html += `<li><a href="#${s.id}"><span class="n">${String(k + 1).padStart(2, "0")}</span>${s.dataset.nav}</a></li>`;
+  });
+  nav.innerHTML = `${html}</ol>`;
+  const links = slides.map((s) => nav.querySelector(`a[href="#${s.id}"]`));
+  let current = 0;
+  function setCurrent(k) {
+    current = k;
+    links.forEach((a, j) => (j === k ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current")));
+    const a = links[k], top = a.offsetTop;
+    if (top < nav.scrollTop) nav.scrollTop = top - 8;
+    else if (top + a.offsetHeight > nav.scrollTop + nav.clientHeight) nav.scrollTop = top + a.offsetHeight - nav.clientHeight + 8;
+    $("counter").textContent = `${String(k + 1).padStart(2, "0")} / ${slides.length}`;
+    $("prev").disabled = k === 0; $("next").disabled = k === slides.length - 1;
+    try { history.replaceState(null, "", `#${slides[k].id}`); } catch (e) { /* not available on every file:// setup */ }
+  }
+  const spy = new IntersectionObserver((entries) => entries.forEach((en) => { if (en.isIntersecting) setCurrent(slides.indexOf(en.target)); }),
+    { rootMargin: "-45% 0px -50% 0px" });
+  slides.forEach((s) => spy.observe(s));
+  const go = (step) => slides[clamp(current + step, 0, slides.length - 1)].scrollIntoView({ behavior: reduced.matches ? "auto" : "smooth", block: "start" });
+  $("prev").addEventListener("click", () => go(-1));
+  $("next").addEventListener("click", () => go(1));
+
+  const store = (key, value) => { try { localStorage.setItem(key, value); } catch (e) { /* private window */ } };
+  const recall = (key) => { try { return localStorage.getItem(key); } catch (e) { return null; } };
+  $("theme-toggle").addEventListener("click", () => {
+    const root = document.documentElement;
+    const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark";
+    store("kc-theme", root.dataset.theme);
+  });
+  const setRail = (hidden) => { document.body.classList.toggle("rail-off", hidden); $("rail-show").setAttribute("aria-expanded", String(!hidden)); };
+  $("rail-show").addEventListener("click", () => setRail(!document.body.classList.contains("rail-off")));
+
+  document.addEventListener("keydown", (e) => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    const el = e.target;
+    if (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable) return;
+    if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); go(1); }
+    else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); go(-1); }
+    else if (e.key === "m" || e.key === "M") setRail(!document.body.classList.contains("rail-off"));
+  });
+})();
+</script>
+</body>
+</html>

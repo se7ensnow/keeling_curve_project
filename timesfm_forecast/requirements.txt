@@ -1,0 +1,10 @@
+# Everything TimesFM needs, kept apart from the main project (pyproject.toml).
+# Install into this folder's own virtual environment:
+#   python -m venv timesfm_forecast/.venv
+#   timesfm_forecast/.venv/Scripts/python -m pip install -r timesfm_forecast/requirements.txt
+timesfm[torch]>=3.0.2
+numpy
+pandas
+scipy
+matplotlib
+pytest

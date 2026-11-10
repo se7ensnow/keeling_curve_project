@@ -172,6 +172,34 @@ def backtest_forecasts(train, factories, cutoffs=range(1985, 1996), horizon=20):
     return pd.DataFrame(rows)
 
 
+def rate_by_cutoff(train, harmonics, cutoffs=range(1975, 2016, 5)):
+    """The fitted rate r of the exponential trend when the model only sees data up to each year."""
+    rows = []
+    for cutoff in cutoffs:
+        history = train[train["year"] <= cutoff]
+        model = ExponentialSeasonalModel(harmonics).fit(history["t"], history["average"])
+        rows.append({"Train until": cutoff, "Months": len(history), "Rate r (1/yr)": float(model.rate_)})
+    return pd.DataFrame(rows)
+
+
+def failure_case(train, factories, cutoff=1985, horizon=20):
+    """Fit every model on data up to `cutoff` and compare annual means `horizon` years later.
+
+    Returns the fitted models and a table. A positive "Model minus measured" is an overshoot.
+    """
+    history = train[train["year"] <= cutoff]
+    fitted = {name: make().fit(history["t"], history["average"]) for name, make in factories.items()}
+    target = train[train["year"] == cutoff + horizon]
+    measured = float(target["average"].mean())
+    rows = []
+    for name, model in fitted.items():
+        mean = float(model.predict(target["t"]).mean())
+        rows.append({"Model": name, "Train until": cutoff, "Target year": cutoff + horizon,
+                     "Measured mean (ppm)": measured, "Model mean (ppm)": mean,
+                     "Model minus measured (ppm)": mean - measured})
+    return fitted, pd.DataFrame(rows)
+
+
 def forecast_year(models, backtest, year=2035, quantile=0.9):
     """Annual mean forecast for `year` with the backtest error (90th percentile) as the error bar."""
     months = pd.date_range(f"{year}-01-01", f"{year}-12-01", freq="MS")

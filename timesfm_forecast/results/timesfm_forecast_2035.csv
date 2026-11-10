@@ -1,0 +1,5 @@
+Model,2035 mean (ppm),Error bar (ppm),Low (ppm),High (ppm)
+Linear,424.5477,15.7555,408.7923,440.3032
+Polynomial + seasonal,449.7494,10.2617,439.4876,460.0111
+Exponential + seasonal,456.1406,21.5024,434.6382,477.6429
+TimesFM 3.0 (zero-shot),440.7333,14.2267,426.5066,454.9600
