@@ -622,7 +622,7 @@
     <header class="slide-head">
       <span class="eyebrow"><b>07</b>Linear in the parameters</span>
       <h2 class="slide-title" id="harmonics-h">Seasonal Components: Harmonic Regression</h2>
-      <p class="lede">The same quadratic trend every time, with one to four harmonics for the yearly cycle.</p>
+      <p class="lede">More harmonics capture seasonal CO₂ fluctuations in greater detail.</p>
     </header>
     <div class="card strip">
       <div class="eq"><math display="block"><mrow>
@@ -639,7 +639,7 @@
           <span class="lbl">Harmonics</span>
           <div class="seg" id="harm-seg" role="group" aria-label="Number of harmonics" style="--m:var(--m-polynomial_seasonal)"></div>
         </div>
-        <dl class="chips" id="harm-chips" aria-live="polite"></dl>
+        <dl class="chips" id="harm-chips" aria-live="polite" style="align-self: flex-end"></dl>
       </div>
     </div>
     <figure class="card chart-card">
@@ -658,7 +658,7 @@
   <section class="slide" id="ols" data-nav="Why OLS still works" data-group="Linear in the parameters" aria-labelledby="ols-h">
     <header class="slide-head">
       <span class="eyebrow"><b>08</b>Linear in the parameters</span>
-      <h2 class="slide-title" id="ols-h">Why the Combined Model Can Be Fitted with OLS</h2>
+      <h2 class="slide-title" id="ols-h">Fitting the Combined Model with OLS</h2>
       <p class="lede">Example with degree 2 and one harmonic: one equation per measurement, five unknowns.</p>
     </header>
     <div class="middle">
@@ -1421,7 +1421,7 @@
     const now = harmonicFit[count](t);
     return countMix < 1 ? lerp(harmonicFit[countFrom](t), now, countMix) : now;
   };
-  $("harm-hint").textContent = `${HARMONIC_YEARS[0]} to ${HARMONIC_YEARS[1]}, with the same axes for every choice`;
+  $("harm-hint");
   const cHarm = makeChart($("g-harm"), {
     label: `Monthly CO2 from ${label(hA)} to ${label(hB)} with the fitted quadratic trend plus 1 to ${counts[counts.length - 1]} harmonics, chosen with the buttons.`,
     title: "CO₂ (ppm)", x: hX, y: [Math.floor(hLo - 0.6), Math.ceil(hHi + 0.6)], xTicks: timeTicks,
@@ -1437,10 +1437,7 @@
   function showCount() {
     const fit = P.harmonic.fits[count];
     $("harm-key").textContent = `Quadratic trend + ${count} harmonic${count > 1 ? "s" : ""}`;
-    $("harm-chips").innerHTML = `<div class="lead" style="--m:var(--m-polynomial_seasonal)"><dt>Training RMSE</dt><dd>${f3(fit.train_rmse)} ppm</dd></div>` +
-      counts.map((h, k) => (k < count
-        ? `<div><dt>${12 / (k + 1)}-month wave</dt><dd>${f2(fit.amplitudes[k])} ppm</dd></div>`
-        : `<div class="off"><dt>${12 / (k + 1)}-month wave</dt><dd>not used</dd></div>`)).join("");
+    $("harm-chips").innerHTML = `<div class="lead" style="--m:var(--m-polynomial_seasonal)"><dt>Training RMSE</dt><dd>${f3(fit.train_rmse)} ppm</dd></div>`;
     document.querySelectorAll("#harm-seg button").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.h === count)));
   }
   $("harm-seg").innerHTML = counts.map((h) => `<button type="button" data-h="${h}">${h}</button>`).join("");
