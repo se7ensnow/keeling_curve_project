@@ -539,15 +539,13 @@
             <msub><mi>e</mi><mi>i</mi></msub><mo>=</mo><msub><mi>C</mi><mi>i</mi></msub><mo>−</mo>
             <msub><mover accent="true"><mi>C</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub>
           </mrow></math></div>
-          <p class="panel-text">Measured minus fitted CO₂, in ppm.</p>
+          <p class="panel-text">Measured value - predicted value of CO₂, in ppm.</p>
         </div>
         <div class="card panel finding on" id="find-full">
-          <h3 class="cap">Full history</h3>
-          <p class="panel-text" id="find-full-text"></p>
+         <p class="panel-text" id="find-full-text"></p>
         </div>
         <div class="card panel finding" id="find-zoom">
-          <h3 class="cap" id="find-zoom-cap">Several years</h3>
-          <p class="panel-text" id="find-zoom-text"></p>
+         <p class="panel-text" id="find-zoom-text"></p>
         </div>
       </div>
     </div>
@@ -558,7 +556,7 @@
     <header class="slide-head">
       <span class="eyebrow"><b>05</b>Linear models</span>
       <h2 class="slide-title" id="decades-h">Rung 2: Linear Regression by Decades</h2>
-      <p class="lede">A straight line describes each decade well, but every decade needs a steeper one.</p>
+      <p class="lede">CO₂ growth is nearly linear within decades, but accelerates over time.</p>
     </header>
     <div class="duo">
       <figure class="card chart-card">
@@ -576,7 +574,6 @@
         <div id="g-slopes"></div>
       </figure>
     </div>
-    <p class="takeaway" id="dec-takeaway"></p>
   </section>
 
   <!-- 06 -->
@@ -1286,11 +1283,16 @@
     return Math.max(...year) - Math.min(...year);
   }));
   $("resid-zoom").textContent = `Zoom into ${ZOOM_YEARS[0]}–${ZOOM_YEARS[1]}`;
-  $("find-full-text").innerHTML = `<b>A U-shape.</b> The line is up to ${f1(Math.max(...trainResid.slice(0, 120)))} ppm too low in the first years and ` +
-    `${f1(Math.max(...trainResid.slice(-120)))} ppm too low in the last, and up to ${f1(-Math.min(...trainResid))} ppm too high in between. The real curve bends upward: growth is accelerating.`;
-  $("find-zoom-cap").textContent = `Several years: ${ZOOM_YEARS[0]} to ${ZOOM_YEARS[1]}`;
-  $("find-zoom-text").innerHTML = `<b>A wave once a year.</b> The residual rises and falls by about ${f1(swing)} ppm every twelve months. ` +
-    `That is the seasonal cycle, which no straight line can follow.`;
+
+ $("find-full-text").innerHTML = 
+  `<b>U-shape</b><br>` +
+  `· ${f1(Math.max(...trainResid.slice(0, 120)))} ppm too low in the first years<br>` +
+  `· ${f1(Math.max(...trainResid.slice(-120)))} ppm too low in the last years<br>` +
+  `· up to ${f1(-Math.min(...trainResid))} ppm too high in between`;
+
+  $("find-zoom-text").innerHTML = 
+  `<b>A wave once a year.</b><br>` +
+  `· The residual rises and falls by about ${f1(swing)} ppm every twelve months.`;
   const cResid = makeChart($("g-resid"), {
     label: `Residuals of the straight line from ${label(0)} to ${label(iTrainEnd)}: a U-shape between ${f1(Math.min(...trainResid))} and ${f1(Math.max(...trainResid))} ppm, with a wave that repeats every year.`,
     title: "Residual (ppm)", x: [0, T(iTrainEnd)], zero: true, zoom: true, resetButton: false, xTicks: timeTicks,
@@ -1324,8 +1326,7 @@
   let hot = -1, cDecades = null, cSlopes = null;
   const setHot = (k) => { if (k === hot) return; hot = k; cDecades.redraw(); cSlopes.redraw(); };
   const first = decades[0], last = decades[nDec - 1];
-  $("dec-takeaway").innerHTML = `The fitted slope grows from <b>${f2(first.slope)} ppm per year</b> in the ${decadeName(first)} to ` +
-    `<b>${f2(last.slope)} ppm per year</b> in ${decadeName(last)}. The single line of rung 1, at ${f2(P.linear.slope)} ppm per year, is too steep for the early decades and too flat for the recent ones.`;
+ 
   cDecades = makeChart($("g-decades"), {
     label: `Measured CO2 with a separate straight line for each decade. Slopes in ppm per year: ${decades.map((d) => `${decadeName(d)} ${f2(d.slope)}`).join(", ")}.`,
     title: "CO₂ (ppm)", x: [0, T(iTrainEnd)], y: yFit([obs], 0, iTrainEnd), xTicks: timeTicks,
