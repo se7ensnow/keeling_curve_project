@@ -1421,8 +1421,7 @@
   function render() { renderPanel(); renderChart(); }
 
   $("subtitle").textContent =
-    `Monthly mean CO₂ at Mauna Loa, ${label(0)} – ${label(lastObs)}. ` +
-    `The models were fitted on ${label(0)} – Dec 2015 only; everything after that is a prediction.`;
+    `Monthly mean CO₂ at Mauna Loa, ${label(0)} – ${label(lastObs)}.`;
   $("note").textContent =
     "Forecasts assume the past pattern simply continues. No model of past CO₂ alone can know future emissions, " +
     "so the further ahead you look, the more the three models disagree. Source: " + D.meta.source + ".";
