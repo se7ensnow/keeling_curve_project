@@ -767,7 +767,7 @@
     <div class="split">
       <figure class="card chart-card">
         <div class="chart-top">
-          <ul class="key"><li><span class="sw" style="--c:var(--accent)"></span>y = e<sup>rx</sup></li></ul>
+          <ul class="key"><li><span class="sw" style="--c:var(--accent)"></span><math><mi>y</mi><mo>=</mo><msup><mi>e</mi><mrow><mi>r</mi><mi>x</mi></mrow></msup></math></li></ul>
         </div>
         <div id="g-exp"></div>
       </figure>
@@ -782,7 +782,6 @@
           <div class="range-ends"><span>0.001</span><span>0.2</span></div>
           <dl class="kv" aria-live="polite">
             <div><dt>Value at x = 100</dt><dd id="r-f100"></dd></div>
-            <div><dt>Doubles every<small>ln 2 / r, in units of x</small></dt><dd id="r-double"></dd></div>
           </dl>
         </div>
       </div>
@@ -794,7 +793,8 @@
     <header class="slide-head">
       <span class="eyebrow"><b>12</b>Truly nonlinear</span>
       <h2 class="slide-title" id="exp-ols-h">Fitting the Exponential Model for Fixed r</h2>
-      <p class="lede">Once r is fixed, the exponential column is a list of known numbers, and least squares works again.</p>
+      <p class="lede">With <i>r</i> fixed, the remaining parameters can be estimated using OLS. 
+</p>
     </header>
     <div class="middle">
       <div class="card ols" id="ols-exp"></div>
@@ -810,7 +810,7 @@
     <header class="slide-head">
       <span class="eyebrow"><b>13</b>Truly nonlinear</span>
       <h2 class="slide-title" id="exp-rate-h">Finding the Optimal Growth Rate r</h2>
-      <p class="lede">One nonlinear parameter, searched on top of least squares.</p>
+      <p class="lede">Comparing fitting errors across different values of <i>r</i> to identify the best fit.</p>
     </header>
     <div class="split">
       <figure class="card chart-card">
@@ -830,12 +830,10 @@
             <munder><mrow><mi>arg</mi><mspace width="0.2em"/><mi>min</mi></mrow><mrow><mi>r</mi><mo>∈</mo><mo stretchy="false">[</mo><mn>0.005</mn><mo>,</mo><mn>0.1</mn><mo stretchy="false">]</mo></mrow></munder>
             <mspace width="0.3em"/><mi>RMSE</mi><mo stretchy="false">(</mo><mi>r</mi><mo stretchy="false">)</mo>
           </mrow></math></div>
-          <p class="panel-text">For every candidate r: build X(r), fit the other coefficients by least squares, then measure the training RMSE.</p>
         </div>
         <div class="card panel">
           <h3 class="cap">Result</h3>
           <dl class="chips" id="rate-chips" style="--m:var(--m-exponential_seasonal)"></dl>
-          <p class="panel-text fine" id="rate-note"></p>
         </div>
       </div>
     </div>
@@ -1580,7 +1578,7 @@
   };
   const cExp = makeChart($("g-exp"), {
     label: "The function y equals e to the power r times x, for x from 0 to 100, with the growth rate r set by the slider.",
-    title: `y = e<tspan dy="-0.5em" font-size="78%">rx</tspan>`, xTitle: "x", x: EXP_X, y: [0, EXP_Y_MAX], yStep: 5000, yFmt: group, padL: 62,
+    xTitle: "x", x: EXP_X, y: [0, EXP_Y_MAX], yStep: 5000, yFmt: group, padL: 62,
     xTicks: () => [0, 20, 40, 60, 80, 100].map((x) => ({ x, text: String(x) })),
     draw: (g) => [stroke(pathFn(g, (x) => Math.min(Math.exp(rate * x), EXP_Y_MAX * 3), EXP_X[0], EXP_X[1]), "var(--accent)", 3 * g.u)],
     tip: (xv) => {
@@ -1592,7 +1590,6 @@
     rate = +slider.value;
     $("r-out").textContent = `r = ${rate.toFixed(3)}`;
     $("r-f100").innerHTML = large(Math.exp(rate * 100));
-    $("r-double").textContent = (Math.LN2 / rate).toFixed(Math.LN2 / rate < 100 ? 1 : 0);
     slider.setAttribute("aria-valuetext", `r = ${rate.toFixed(3)}`);
     cExp.redraw();
   }
@@ -1602,7 +1599,6 @@
   // ---------- 13 the training error as a function of r ----------
   const scan = E.scan, scanMax = Math.max(...scan.rmse);
   $("rate-chips").innerHTML = `<div class="lead"><dt>Best growth rate</dt><dd>r* = ${E.rate.toFixed(4)} per year</dd></div><div><dt>Training RMSE there</dt><dd>${f3(E.train_rmse)} ppm</dd></div>`;
-  $("rate-note").textContent = `A bounded optimiser (scipy minimize_scalar) finds r* on [${E.bounds[0]}, ${E.bounds[1]}]. The curve shows the same objective at ${scan.rate.length} values of r. This is training error, not held-out error.`;
   makeChart($("g-rate"), {
     label: `Training RMSE of the exponential model for growth rates r from ${E.bounds[0]} to ${E.bounds[1]}. The minimum, ${f3(E.train_rmse)} ppm, is at r equal to ${E.rate.toFixed(4)}.`,
     title: "Training RMSE (ppm)", xTitle: "Growth rate r (per year)", x: E.bounds.slice(), y: [0, Math.ceil(scanMax + 0.5)],
