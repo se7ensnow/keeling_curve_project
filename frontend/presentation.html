@@ -496,7 +496,7 @@
         <div class="card panel">
           <h3 class="cap">Model</h3>
           <div class="eq"><math display="block"><mrow>
-            <mi>C</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo>
+            <mi>y</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo>
             <msub><mi>β</mi><mn>0</mn></msub><mo>+</mo><msub><mi>β</mi><mn>1</mn></msub><mi>t</mi>
           </mrow></math></div>
           <p class="panel-text">t counts years from March 1958.</p>
@@ -536,8 +536,8 @@
         <div class="card panel">
           <h3 class="cap">Residual</h3>
           <div class="eq"><math display="block"><mrow>
-            <msub><mi>e</mi><mi>i</mi></msub><mo>=</mo><msub><mi>C</mi><mi>i</mi></msub><mo>−</mo>
-            <msub><mover accent="true"><mi>C</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub>
+            <msub><mi>e</mi><mi>i</mi></msub><mo>=</mo><msub><mi>y</mi><mi>i</mi></msub><mo>−</mo>
+            <msub><mover accent="true"><mi>y</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub>
           </mrow></math></div>
           <p class="panel-text">Measured value - predicted value of CO₂, in ppm.</p>
         </div>
@@ -601,7 +601,7 @@
         <div class="card panel">
           <h3 class="cap">General form</h3>
           <div class="eq"><math display="block"><mrow>
-            <mi>C</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo>
+            <mi>y</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo>
             <munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>0</mn></mrow><mi>d</mi></munderover>
             <msub><mi>β</mi><mi>k</mi></msub><msup><mi>t</mi><mi>k</mi></msup>
           </mrow></math></div>
@@ -701,7 +701,7 @@
             <msqrt><mrow>
               <mfrac><mn>1</mn><mi>n</mi></mfrac>
               <munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover>
-              <msup><mrow><mo stretchy="false">(</mo><msub><mi>C</mi><mi>i</mi></msub><mo>−</mo><msub><mover accent="true"><mi>C</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub><mo stretchy="false">)</mo></mrow><mn>2</mn></msup>
+              <msup><mrow><mo stretchy="false">(</mo><msub><mi>y</mi><mi>i</mi></msub><mo>−</mo><msub><mover accent="true"><mi>y</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub><mo stretchy="false">)</mo></mrow><mn>2</mn></msup>
             </mrow></msqrt>
           </mrow></math></div>
         </div>
@@ -723,7 +723,7 @@
     </header>
     <div class="card strip">
       <div class="eq"><math display="block"><mrow>
-        <mi>C</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo>
+        <mi>y</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo>
         <munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>0</mn></mrow><mn>2</mn></munderover>
         <msub><mi>β</mi><mi>k</mi></msub><msup><mi>t</mi><mi>k</mi></msup>
         <mo>+</mo>
@@ -841,8 +841,8 @@
     </header>
     <div class="card strip">
       <div class="eq"><math display="block"><mrow>
-        <mi>C</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo>
-        <msub><mi>c</mi><mn>0</mn></msub><mo>+</mo><mi>a</mi>
+        <mi>y</mi><mo stretchy="false">(</mo><mi>t</mi><mo stretchy="false">)</mo><mo>=</mo>
+        <msub><mi>y</mi><mn>0</mn></msub><mo>+</mo><mi>a</mi>
         <msup><mi>e</mi><mrow><msup><mi>r</mi><mo>*</mo></msup><mi>t</mi></mrow></msup>
         <mo>+</mo>
         <munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>h</mi></munderover>
@@ -879,7 +879,7 @@
           <div class="eq big"><math display="block"><mrow>
             <mi>MAE</mi><mo>=</mo><mfrac><mn>1</mn><mi>n</mi></mfrac>
             <munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover>
-            <mrow><mo stretchy="false">|</mo><msub><mi>C</mi><mi>i</mi></msub><mo>−</mo><msub><mover accent="true"><mi>C</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub><mo stretchy="false">|</mo></mrow>
+            <mrow><mo stretchy="false">|</mo><msub><mi>y</mi><mi>i</mi></msub><mo>−</mo><msub><mover accent="true"><mi>y</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub><mo stretchy="false">|</mo></mrow>
           </mrow></math></div>
         </div>
         <div class="card">
@@ -889,7 +889,7 @@
             <msqrt><mrow>
               <mfrac><mn>1</mn><mi>n</mi></mfrac>
               <munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover>
-              <msup><mrow><mo stretchy="false">(</mo><msub><mi>C</mi><mi>i</mi></msub><mo>−</mo><msub><mover accent="true"><mi>C</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub><mo stretchy="false">)</mo></mrow><mn>2</mn></msup>
+              <msup><mrow><mo stretchy="false">(</mo><msub><mi>y</mi><mi>i</mi></msub><mo>−</mo><msub><mover accent="true"><mi>y</mi><mo stretchy="false">^</mo></mover><mi>i</mi></msub><mo stretchy="false">)</mo></mrow><mn>2</mn></msup>
             </mrow></msqrt>
           </mrow></math></div>
         </div>
@@ -1243,7 +1243,7 @@
   const sub = (a, b) => `<msub>${a}${b}</msub>`, sup = (a, b) => `<msup>${a}${b}</msup>`;
   const paren = (s) => `<mo stretchy="false">(</mo>${s}<mo stretchy="false">)</mo>`;
   const math = (s, block) => `<math${block ? ' display="block"' : ""}><mrow>${s}</mrow></math>`;
-  const HAT_C = `<mover accent="true"><mi>C</mi><mo stretchy="false">^</mo></mover>`;
+  const HAT_C = `<mover accent="true"><mi>y</mi><mo stretchy="false">^</mo></mover>`;
   // a magnitude with 4 significant digits, or mantissa × 10^k when it is tiny
   function magnitude(v) {
     const a = Math.abs(v);
