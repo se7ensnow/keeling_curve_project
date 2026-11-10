@@ -739,7 +739,7 @@
     <figure class="card chart-card">
       <div class="chart-top">
         <ul class="key">
-          <li><span class="sw" style="--c:var(--observed)"></span>Measured, training years</li>
+          <li><span class="sw" style="--c:var(--observed)"></span>Measured</li>
           <li><span class="sw" style="--c:var(--m-polynomial_seasonal)"></span>Complete fitted model</li>
         </ul>
       </div>
@@ -751,8 +751,8 @@
   <section class="slide" id="exp-function" data-nav="The exponential function" data-group="Truly nonlinear" aria-labelledby="exp-function-h">
     <header class="slide-head">
       <span class="eyebrow"><b>11</b>Truly nonlinear</span>
-      <h2 class="slide-title" id="exp-function-h">Understanding the Exponential Function</h2>
-      <p class="lede">What the growth rate r changes. This is a plain mathematical example, separate from the CO₂ model.</p>
+      <h2 class="slide-title" id="exp-function-h">Exponential Growth and the Rate Parameter</h2>
+     <p class="lede">How the growth rate <i>r</i> affects the shape of the exponential curve.</p>
     </header>
     <div class="split">
       <figure class="card chart-card">
@@ -774,7 +774,6 @@
             <div><dt>Value at x = 100</dt><dd id="r-f100"></dd></div>
             <div><dt>Doubles every<small>ln 2 / r, in units of x</small></dt><dd id="r-double"></dd></div>
           </dl>
-          <p class="panel-text fine">With x in years, r is measured per year.</p>
         </div>
       </div>
     </div>
@@ -1544,11 +1543,10 @@
     });
   }
   const sel = P.selected, trend = sel.trend_per_year;
-  $("selected-lede").textContent = `The validated choice: a quadratic trend plus ${sel.harmonics} harmonics. All ${sel.parameters} coefficients enter linearly.`;
+  $("selected-lede").textContent = `The validated choice: a quadratic trend plus ${sel.harmonics} harmonics.`;
   $("selected-chips").innerHTML =
     `<div class="lead"><dt>Chosen</dt><dd>d = ${sel.degree}, h = ${sel.harmonics}</dd></div>` +
-    `<div><dt>Fitted trend, with t in years</dt><dd>${math(mn(f2(trend[0])) + trend.slice(1).map((v, k) => mo(v < 0 ? "−" : "+") + magnitude(v) + times + tPower(k + 1)).join(""))}</dd></div>` +
-    `<div><dt>Yearly wave</dt><dd>${f2(sel.amplitudes[0])} ppm amplitude</dd></div>` +
+    `<div><dt>Fitted trend, with t in years</dt><dd>${math(mn(f2(trend[0])) + trend.slice(1).map((v, k) => mo(v < 0 ? "−" : "+") + magnitude(v) + times + tPower(k + 1)).join(""))}</dd></div>`+
     `<div><dt>Training RMSE</dt><dd>${f3(sel.train_rmse)} ppm</dd></div>`;
   fittedChart($("g-selected"), selectedAt, POLY, `Polynomial of degree ${sel.degree} with ${sel.harmonics} harmonics`);
   $("expfit-chips").innerHTML =
