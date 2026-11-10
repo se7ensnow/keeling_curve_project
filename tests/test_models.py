@@ -9,6 +9,7 @@ from keeling.models import (
     DecadeLinearModel,
     ExponentialSeasonalModel,
     LinearModel,
+    PolynomialModel,
     PolynomialSeasonalModel,
     fit_by_decade,
 )
@@ -36,6 +37,34 @@ def test_polynomial_seasonal_recovers_known_coefficients():
     # order: x^0, x^1, x^2, sin, cos
     assert model.coef_ == pytest.approx([315.0, 8.0, 1.2, 2.0, -0.8], abs=1e-6)
     assert model.predict(T) == pytest.approx(y, abs=1e-6)
+
+
+def test_polynomial_model_recovers_known_coefficients():
+    x = T / 10
+    y = 315.0 + 8.0 * x + 1.2 * x**2 - 0.05 * x**3
+    model = PolynomialModel(degree=3).fit(T, y)
+    assert model.coef_ == pytest.approx([315.0, 8.0, 1.2, -0.05], abs=1e-6)
+    assert model.n_params == 4
+    assert model.trend(T) == pytest.approx(model.predict(T))  # no seasonal part to remove
+
+
+@pytest.mark.parametrize("degree", [1, 2, 3, 4])
+def test_polynomial_model_matches_the_notebook_formulation(degree):
+    """The same features and least squares as the notebook's PolynomialModel: powers of x = t/10."""
+    rng = np.random.default_rng(degree)
+    y = 315.0 + 8.0 * (T / 10) + 1.2 * (T / 10) ** 2 + seasonal(T) + rng.normal(0, 0.3, len(T))
+    features = np.column_stack([(T / 10) ** d for d in range(degree + 1)])
+    expected = np.linalg.lstsq(features, y, rcond=None)[0]
+    model = PolynomialModel(degree=degree).fit(T, y)
+    assert model.coef_ == pytest.approx(expected, rel=1e-9, abs=1e-9)
+    assert model.predict(T) == pytest.approx(features @ expected)
+
+
+def test_polynomial_of_degree_one_is_the_linear_model():
+    y = 310.0 + 1.5 * T + seasonal(T)
+    line, poly = LinearModel().fit(T, y), PolynomialModel(degree=1).fit(T, y)
+    assert poly.coef_[0] == pytest.approx(line.intercept_)
+    assert poly.coef_[1] / 10 == pytest.approx(line.slope_)  # per decade -> per year
 
 
 def test_polynomial_is_linear_in_its_parameters():

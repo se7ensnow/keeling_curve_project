@@ -55,3 +55,12 @@ class PolynomialSeasonalModel(Model):
             "time_unit": "t = years since 1958-03; trend uses x = t/10",
             "coef": [float(c) for c in self.coef_],
         }
+
+
+class PolynomialModel(PolynomialSeasonalModel):
+    """Trend-only polynomial: the rung 3 model without the seasonal sines and cosines."""
+
+    name = "polynomial"
+
+    def __init__(self, degree=2):
+        super().__init__(degree=degree, harmonics=0)

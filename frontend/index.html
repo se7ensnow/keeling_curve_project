@@ -163,10 +163,31 @@
   @media (min-width: 1280px) { .pill-status { display: inline-flex; } }
 
   /* masthead */
-  .masthead { position: relative; overflow: hidden; background: var(--canvas); padding: 32px 0 40px; scroll-margin-top: 64px; }
-  .masthead::before, .masthead::after { content: ""; position: absolute; border-radius: 50%; filter: blur(64px); pointer-events: none; }
-  .masthead::before { top: -128px; right: 48px; width: 384px; height: 384px; background: color-mix(in srgb, var(--accent) 9%, transparent); }
-  .masthead::after { bottom: -96px; left: 25%; width: 320px; height: 320px; background: color-mix(in srgb, var(--secondary) 7%, transparent); }
+  /* Header photo. It is dark in both themes, so the header carries the dark tokens itself
+     and reads the same whether the page is light or dark. */
+  .masthead {
+    --hero-img: url("assets/observatory-hero.jpg");
+    color-scheme: dark;
+    --surface-0: #101419; --surface-1: rgba(16, 20, 25, 0.62); --surface-low: rgba(24, 28, 33, 0.7);
+    --surface-high: rgba(38, 42, 48, 0.78); --seg-on: #31353b; --canvas: #0a0f13;
+    --border: rgba(255, 255, 255, 0.14); --card-edge: transparent; --grid: #1c2025;
+    --text-primary: #eef1f6; --text-secondary: #ccd6db; --text-muted: #9fadb3; --observed: #f4f6fa;
+    --accent: #a5e7ff; --focus: #47d6ff; --secondary: #14b88a; --c-seasonal: #ff8fb1;
+    --m-linear: #b388ff; --m-polynomial_seasonal: #ffb000; --m-exponential_seasonal: #14b88a;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 16px rgba(0, 0, 0, 0.28);
+    position: relative; overflow: hidden; color: var(--text-primary);
+    padding: 32px 0 40px; scroll-margin-top: 64px;
+    background:
+      linear-gradient(90deg, rgba(7, 11, 16, 0.86) 0%, rgba(7, 11, 16, 0.62) 36%, rgba(7, 11, 16, 0.22) 70%, rgba(7, 11, 16, 0.05) 100%),
+      linear-gradient(0deg, rgba(7, 11, 16, 0.72) 0%, rgba(7, 11, 16, 0) 40%),
+      var(--hero-img) center 74% / cover no-repeat,
+      #0a0f13;
+  }
+  .masthead .kpi, .masthead .horizon {
+    border: 1px solid var(--border);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  }
+  @media (max-width: 700px) { .masthead { --hero-img: url("assets/observatory-hero-1000.jpg"); } }
   .masthead .wrap { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 24px; }
   .masthead-top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; }
   .masthead-copy { max-width: 60rem; }
@@ -511,9 +532,6 @@
     </nav>
     <div class="top-pills">
       <span class="pill pill-status"><i class="dot"></i>NOAA Mauna Loa GML: <b>three-model suite</b></span>
-      <span class="pill" aria-hidden="true">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l6-6-6-6"/><path d="M12 19h8"/></svg>
-        PPM <span id="tb-ppm"></span>
       </span>
     </div>
   </div>
@@ -534,7 +552,7 @@
         </div>
         <div class="horizon">
           <div>
-            <span class="cap">Model training horizon</span>
+            <span class="cap">Model training Period</span>
             <b id="hz-train"></b>
           </div>
           <span class="bar" aria-hidden="true"></span>
@@ -1099,7 +1117,8 @@
     $("r-label").innerHTML =
       `<span class="probe-model" style="color:${color(state.model)}"><i class="dot" style="background:${color(state.model)}"></i>${m.label}</span> ` +
       `<span class="chip">${label(i)}</span>`;
-    $("tb-ppm").textContent = fmt(pred);
+    const topPpm = $("tb-ppm"); // the top-bar ppm pill is optional; the page must not break without it
+    if (topPpm) topPpm.textContent = fmt(pred);
     $("r-hero").innerHTML = `${fmt(pred)} <small>ppm</small>`;
     $("r-tag").innerHTML = `<span class="tag tag-${r.key}">${r.name}</span>` +
       (obs == null ? ` <span class="tag">No measurement</span>` : "") +
@@ -1503,7 +1522,7 @@
     `<div class="kpi ${cls}"><div class="kpi-head"><span class="cap">${title}</span>${icon}</div>` +
     `<div class="kpi-val">${val}<small>${unit}</small></div><span class="kpi-sub">${sub}</span></div>`;
   $("kpis").innerHTML =
-    kpi("kpi-trend", "Atmospheric baseline trend", ICON.up, f2(best.trend[lastObs]), "ppm", `Seasonal wiggle removed · ${label(lastObs)}`) +
+    kpi("kpi-trend", "Atmospheric baseline trend", ICON.up, f2(best.trend[lastObs]), "ppm", `Without Seasonal wiggle· ${label(lastObs)}`) +
     kpi("kpi-growth", "Yearly rise now", ICON.gauge, `+${f2(best.growth[lastObs])}`, "ppm/yr",
         g1960 == null ? `${best.label} trend` : `vs +${f2(g1960)} ppm/yr in ${riseFrom} (+${Math.round((best.growth[lastObs] / g1960 - 1) * 100)}% climb)`) +
     kpi("kpi-seasonal", "Seasonal oscillation", ICON.wave, `~${f1(swing)}`, "ppm", `${fullName(peakM)} peak to ${fullName(troughM)} trough, every year`) +
