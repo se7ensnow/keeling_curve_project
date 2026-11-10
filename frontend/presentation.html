@@ -675,7 +675,7 @@
     <header class="slide-head">
       <span class="eyebrow"><b>09</b>Linear in the parameters</span>
       <h2 class="slide-title" id="selection-h">Model Selection with Validation</h2>
-      <p class="lede">Degree and harmonics are chosen on years the fit has not seen. Everything from 2016 on stays untouched.</p>
+      <p class="lede">Degree and harmonics are chosen on years the fit has not seen.</p>
     </header>
     <div class="card">
       <h3 class="cap">How the months are used</h3>
@@ -1510,7 +1510,7 @@
   $("heat-note").innerHTML = `Each cell: fitted on ${period(M.fit)}, scored on ${period(M.validation)}. Outlined: the lowest error. ` +
     `The search also covered ${S.searched.harmonics[0]} and up to ${S.searched.harmonics[1]} harmonics; no other combination scored lower.`;
   $("sel-result").innerHTML = `Degree <b>${bestCell.degree}</b> with <b>${bestCell.harmonics}</b> harmonics`;
-  $("sel-text").innerHTML = `Validation RMSE <b>${f3(bestCell.val_rmse)} ppm</b>, the lowest of all combinations. Higher degrees fit the past more closely but predict the next five years worse.`;
+  $("sel-text").innerHTML = `Validation RMSE <b>${f3(bestCell.val_rmse)} ppm</b>, the lowest of all combinations.`;
   const heatTip = $("heat-tip"), heatWrap = heatTip.parentElement;
   $("heat").addEventListener("pointermove", (e) => {
     const td = e.target.closest("td");
