@@ -242,7 +242,7 @@
   .kpi-trend .kpi-val { color: var(--text-primary); }
   .kpi-growth .kpi-val { color: var(--secondary); }
   .kpi-seasonal .kpi-val, .kpi-seasonal .kpi-head svg { color: var(--c-seasonal); }
-  .kpi-error .kpi-val { color: var(--accent); }
+  .kpi-rise .kpi-val { color: var(--accent); }
   @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 560px) { .kpis { grid-template-columns: minmax(0, 1fr); } }
 
@@ -287,6 +287,9 @@
   /* figures and static graphs */
   .fig { display: flex; flex-direction: column; gap: 12px; margin: 0; min-width: 0; }
   .fig figcaption { font: 400 13px/20px var(--font-sans); color: var(--text-secondary); }
+  .fig .part-cap { font: 400 13px/20px var(--font-sans); color: var(--text-secondary); margin: 4px 0 16px; }
+  .fig .part-cap:last-child { margin-bottom: 0; }
+  .fig .part-cap b { color: var(--text-primary); font-weight: 600; }
   .plot { position: relative; width: 100%; padding: 8px; border-radius: 8px; background: var(--canvas); }
   .plot svg { display: block; width: 100%; height: auto; }
   .plot + .plot { margin-top: 8px; }
@@ -304,6 +307,10 @@
   .err-list span { color: var(--text-primary); }
 
   /* model cards, error bars, matrix */
+  .linear-box { margin-bottom: 16px; }
+  .linear-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .linear-grid p { margin: 0; }
+  @media (max-width: 900px) { .linear-grid { grid-template-columns: minmax(0, 1fr); } }
   .models3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 16px; }
   @media (max-width: 900px) { .models3 { grid-template-columns: minmax(0, 1fr); } }
   .mcard { display: flex; flex-direction: column; gap: 16px; border-top: 3px solid var(--m); }
@@ -545,9 +552,10 @@
     <nav class="nav" aria-label="Page sections">
       <a href="#overview">Overview</a>
       <a href="#data">The data</a>
-      <a href="#analogy">Intuition</a>
+      <a href="#analogy">Two motions</a>
       <a href="#models">Models</a>
-      <a href="#explorer">Explorer</a>
+      <a href="#explorer">Forecast</a>
+      <a href="#limits">Limits</a>
     </nav>
     <div class="top-pills">
       <span class="pill pill-status"><i class="dot"></i>NOAA Mauna Loa GML: <b>three-model suite</b></span>
@@ -573,12 +581,12 @@
         </div>
         <div class="horizon">
           <div>
-            <span class="cap">Model training Period</span>
+            <span class="cap">Years the models learn from</span>
             <b id="hz-train"></b>
           </div>
           <span class="bar" aria-hidden="true"></span>
           <div>
-            <span class="cap">Held-out validation</span>
+            <span class="cap">Years kept back to test them</span>
             <b id="hz-held"></b>
           </div>
         </div>
@@ -591,7 +599,6 @@
   <section class="band" id="data" aria-labelledby="data-h">
     <div class="wrap">
       <div class="sec-head">
-        <span class="eyebrow e-accent">Observational record</span>
         <h2 class="sec-title" id="data-h">What the measurements show</h2>
         <p class="sec-lead">Since March 1958, scientists at Mauna Loa Observatory in Hawaii have measured the carbon dioxide in the air every month. The station sits high on a volcano, far from cities and forests, so its air is a clean sample of the whole atmosphere. This page uses <b data-v="n_obs"></b> monthly measurements from <b data-v="first_label"></b> to <b data-v="last_label"></b>. Everything below is built from them.</p>
       </div>
@@ -602,19 +609,19 @@
               <h3 class="card-title">The Keeling curve</h3>
               <ul class="key">
                 <li><span class="sw" style="--c:var(--observed)"></span>Measured</li>
-                <li><span class="sw dash" style="--c:var(--accent)"></span>Trend</li>
-                <li><span class="sw bar" style="--c:var(--accent)"></span>Held-out period</li>
+                <li><span class="sw dash" style="--c:var(--accent)"></span>Fitted trend</li>
+                <li><span class="sw bar" style="--c:var(--accent)"></span>Test years</li>
               </ul>
             </div>
             <div class="plot" id="p-record"></div>
-            <figcaption>Measured monthly mean CO₂ in parts per million (ppm). It climbs from <b data-v="v0"></b> ppm in <b data-v="first_label"></b> to <b data-v="v1"></b> ppm in <b data-v="last_label"></b>, a rise of <b data-v="rise"></b> ppm (<b data-v="rise_pct"></b>%). The dashed line is the smooth trend of the <b data-v="best_label"></b> model; the shaded stretch is the period kept out of model fitting.</figcaption>
+            <figcaption>Measured monthly mean CO₂ in parts per million (ppm). It climbs from <b data-v="v0"></b> ppm in <b data-v="first_label"></b> to <b data-v="v1"></b> ppm in <b data-v="last_label"></b>, a rise of <b data-v="rise"></b> ppm (<b data-v="rise_pct"></b>%). The dashed line is a smooth trend fitted to the data. The models behind it are explained further down. The shaded stretch, from <b data-v="held_label"></b>, was kept back so the models could be tested on years they never saw.</figcaption>
           </figure>
         </div>
         <div class="card c4">
           <h3 class="card-title" style="margin-bottom:16px">How to read it</h3>
           <ol class="steps">
             <li><b>It climbs.</b> <span data-v="no_fall"></span></li>
-            <li><b>It is not a smooth line.</b> Each year it zig-zags by about <b data-v="swing"></b> ppm, peaking in <b data-v="peak_month"></b> and bottoming out in <b data-v="trough_month"></b>.</li>
+            <li><b>It is not a smooth line.</b> Each year it swings by about <b data-v="swing"></b> ppm, peaking in <b data-v="peak_month"></b> and reaching its lowest point in <b data-v="trough_month"></b>.</li>
             <li><b>The climb is speeding up.</b> The yearly rise averaged <b data-v="g_early"></b> ppm per year in <span data-v="g_early_range"></span> and <b data-v="g_late"></b> ppm per year in <span data-v="g_late_range"></span>.</li>
           </ol>
         </div>
@@ -626,19 +633,19 @@
               <h3 class="card-title">How fast does it rise?</h3>
               <ul class="key">
                 <li><span class="sw bar" style="--c:var(--accent)"></span>Measured rise per year</li>
-                <li><span class="sw" style="--c:var(--m-exponential_seasonal)" id="key-best"></span><span data-v="best_label"></span></li>
-                <li><span class="sw dash" style="--c:var(--m-linear)"></span>Linear model</li>
+                <li><span class="sw" style="--c:var(--m-exponential_seasonal)" id="key-best"></span>Fitted trend</li>
+                <li><span class="sw dash" style="--c:var(--m-linear)"></span>Straight line</li>
               </ul>
             </div>
             <div class="plot" id="p-growth"></div>
-            <figcaption>Bars: how much each year's average CO₂ exceeds the year before, in ppm per year. Solid line: the yearly growth of the <b data-v="best_label"></b> trend. Dashed line: the single constant rate (<b data-v="slope"></b> ppm per year) that a straight line is forced to use. The bars grow roughly <b data-v="g_ratio"></b>-fold, from <b data-v="g_early"></b> to <b data-v="g_late"></b> ppm per year.</figcaption>
+            <figcaption>Bars: how much each year's average CO₂ exceeds the year before, in ppm per year. Solid line: the yearly growth of the fitted trend. Dashed line: the single constant rate (<b data-v="slope"></b> ppm per year) that a straight line through the data is forced to use. The bars grow roughly <b data-v="g_ratio"></b>-fold, from <b data-v="g_early"></b> to <b data-v="g_late"></b> ppm per year.</figcaption>
           </figure>
         </div>
         <div class="card c4">
           <h3 class="card-title" style="margin-bottom:12px">Why one straight line is not enough</h3>
           <div class="prose">
-            <p>A straight line says every year adds the same amount of CO₂. The bars say otherwise: the early years add far less than the recent ones. That is the first clue that the trend is <b>curved</b>, which is what the polynomial and exponential models are built to capture.</p>
-            <p>The bars also bounce from year to year, between <b data-v="g_min"></b> and <b data-v="g_max"></b> ppm per year. Part of that is real year-to-year variation in the climate system (El Niño years, for example), which none of these models try to predict.</p>
+            <p>A straight line says every year adds the same amount of CO₂. The bars say otherwise: the early years add far less than the recent ones. That is the first clue that the trend is <b>curved</b>, which is what the curved models further down are built to capture.</p>
+            <p>The bars also bounce from year to year, between <b data-v="g_min"></b> and <b data-v="g_max"></b> ppm per year. Part of that is real year-to-year variation in the climate system, which none of these models try to predict.</p>
           </div>
         </div>
       </div>
@@ -649,9 +656,8 @@
   <section class="band alt" id="analogy" aria-labelledby="analogy-h">
     <div class="wrap">
       <div class="sec-head">
-        <span class="eyebrow">Phenomenological foundation</span>
-        <h2 class="sec-title" id="analogy-h">The intuition: “the child on an escalator”</h2>
-        <p class="sec-lead">The measurements contain two motions laid on top of each other: a long-term rise and a repeating yearly swing. Pulling them apart is the key to modelling the curve.</p>
+        <h2 class="sec-title" id="analogy-h">Two motions in one curve: a steady rise and a yearly swing</h2>
+        <p class="sec-lead">Picture a child jumping up and down on an upward escalator. Their height is the steady climb of the escalator plus the jumping. CO₂ behaves the same way: a long-term rise (the escalator) with a repeating yearly swing on top (the jump). Pulling the two apart is the key to modelling the curve.</p>
       </div>
       <div class="row12">
         <div class="card c7">
@@ -662,10 +668,12 @@
             </div>
             <div>
               <div class="plot" id="p-dec-obs"></div>
+              <p class="part-cap">The last ten years, as the instrument measured them (solid), with the fitted trend (dashed).</p>
               <div class="plot" id="p-dec-trend"></div>
+              <p class="part-cap">The trend alone: a steady climb of <b data-v="trend10"></b> ppm in ten years.</p>
               <div class="plot" id="p-dec-seas"></div>
+              <p class="part-cap">The seasonal part alone. It swings between <b data-v="seas_min"></b> and <b data-v="seas_max"></b> ppm every year and averages out to about zero.</p>
             </div>
-            <figcaption>The last ten years, pulled apart with the <b data-v="best_label"></b> model. Top: what the instrument measured (solid) with the trend (dashed). Middle: the trend alone, a steady climb of <b data-v="trend10"></b> ppm in ten years. Bottom: the seasonal part alone, which swings between <b data-v="seas_min"></b> and <b data-v="seas_max"></b> ppm every year and averages out to about zero.</figcaption>
           </figure>
           <div class="mini-row">
             <div class="mini">
@@ -673,18 +681,18 @@
               <p>Mostly the burning of fossil fuels and changes in land use carry the whole curve upward, by about <b data-v="g_now"></b> ppm per year at the end of the record.</p>
             </div>
             <div class="mini">
-              <h4><span class="dot" style="background:var(--c-seasonal)"></span>2. The jump (seasonality)</h4>
-              <p>Northern Hemisphere plants take CO₂ out of the air as they grow and give it back as leaves decay. The curve peaks in <b data-v="peak_month"></b> and bottoms out in <b data-v="trough_month"></b>.</p>
+              <h4><span class="dot" style="background:var(--c-seasonal)"></span>2. The jump (yearly swing)</h4>
+              <p>Northern Hemisphere plants take CO₂ out of the air as they grow and give it back as leaves decay. The curve peaks in <b data-v="peak_month"></b> and is at its lowest in <b data-v="trough_month"></b>.</p>
             </div>
           </div>
         </div>
         <div class="stack c5">
           <div class="card">
-            <h3 class="card-title" style="margin-bottom:12px">The mathematical synthesis</h3>
+            <h3 class="card-title" style="margin-bottom:12px">The same idea as a formula</h3>
             <div class="prose">
-              <p>A child who jumps up and down on an upward escalator has a height that is the steady climb plus the jumping. Atmospheric CO₂ works the same way:</p>
-              <p class="formula">CO₂(t) = Baseline(t) + Seasonal(t) + ε(t)</p>
-              <p><span class="c-trend">Baseline(t)</span> is the slow rise, the escalator. <span class="c-seas">Seasonal(t)</span> is the repeating 12-month wave, the jump. ε(t) is the small leftover that no model captures.</p>
+              <p>Every model on this page is built from the same three parts:</p>
+              <p class="formula">CO₂(t) = Trend(t) + Seasonal(t) + ε(t)</p>
+              <p><span class="c-trend">Trend(t)</span> is the slow rise, the escalator. <span class="c-seas">Seasonal(t)</span> is the yearly swing, the jump. ε(t) is the small leftover that no model captures. The models differ only in the shape they allow for each part.</p>
             </div>
           </div>
           <div class="card">
@@ -697,21 +705,21 @@
         <div class="card c7">
           <figure class="fig">
             <div class="card-head">
-              <h3 class="card-title">The jump, month by month</h3>
+              <h3 class="card-title">The yearly swing, month by month</h3>
               <ul class="key">
                 <li><span class="sw bar" style="--c:var(--c-seasonal)"></span>Measured average</li>
-                <li><span class="sw" style="--c:var(--m-exponential_seasonal)"></span>Fitted seasonal wave</li>
+                <li><span class="sw" style="--c:var(--m-exponential_seasonal)"></span>Fitted seasonal part</li>
               </ul>
             </div>
             <div class="plot" id="p-month"></div>
-            <figcaption>Average seasonal part for each calendar month. Bars: the measurements from <b data-v="first_label"></b> to <b data-v="train_end"></b> minus the trend. Line: the seasonal wave fitted by the <b data-v="best_label"></b> model. They agree closely, so the model has learned the shape of the year.</figcaption>
+            <figcaption>Average seasonal part for each calendar month. Bars: the measurements from <b data-v="first_label"></b> to <b data-v="train_end"></b> minus the trend. Line: the fitted seasonal part. They agree closely, so a handful of waves is enough to capture the shape of the year.</figcaption>
           </figure>
         </div>
         <div class="card c5">
-          <h3 class="card-title" style="margin-bottom:12px">How the yearly wave is modelled</h3>
+          <h3 class="card-title" style="margin-bottom:12px">How the yearly swing is modelled</h3>
           <div class="prose">
-            <p>Any repeating curve can be built by stacking sine and cosine waves of different lengths, called harmonics. The polynomial and exponential models each use <b data-v="harmonics"></b>: a 12-month wave for the main shape, plus 6-, 4- and 3-month waves that sharpen it.</p>
-            <p>The linear model has none, so it cannot follow the yearly wiggle at all. Every wiggle is left over as error.</p>
+            <p>Any repeating curve can be built by stacking sine and cosine waves of different lengths, called harmonics. The curved models further down each use <b data-v="harmonics"></b>: a 12-month wave for the main shape, plus 6-, 4- and 3-month waves that sharpen it.</p>
+            <p>A plain straight line has none, so it cannot follow the yearly swing at all. The whole swing is left over as error.</p>
           </div>
         </div>
       </div>
@@ -722,9 +730,16 @@
   <section class="band" id="models" aria-labelledby="models-h">
     <div class="wrap">
       <div class="sec-head">
-        <span class="eyebrow">Statistical framework</span>
         <h2 class="sec-title" id="models-h">Three models, one test</h2>
         <p class="sec-lead">Each model was fitted only on <b data-v="first_label"></b> – <b data-v="train_end"></b>. Everything from <b data-v="held_label"></b> onward was held back, so the scores below measure how well each model predicts <b data-v="n_held"></b> months it has never seen.</p>
+      </div>
+      <div class="card linear-box">
+        <h3 class="card-title" style="margin-bottom:12px">Linear in what?</h3>
+        <div class="prose linear-grid">
+          <p><b>1. Linear.</b> A straight line, a + b·t. Least squares finds a and b in one step.</p>
+          <p><b>2. Polynomial + seasonal.</b> The curve bends, but every unknown number still just multiplies something known: t, t², a sine, a cosine. That makes it <b>linear in its parameters</b>, so one least-squares step still finds them all.</p>
+          <p><b>3. Exponential + seasonal.</b> The growth rate r sits inside e^(r·t), so no single step can find it. The model is <b>truly non-linear</b> in r. We try values of r and, for each one, solve the rest by least squares.</p>
+        </div>
       </div>
       <div class="models3" id="model-cards"></div>
       <div class="row12">
@@ -738,7 +753,7 @@
               <div class="plot" id="p-err-all"></div>
               <div class="plot" id="p-err-zoom"></div>
             </div>
-            <figcaption>Prediction minus measurement for each held-out month. Below zero means the model predicted too low. The first graph shows all three models; the second zooms in without the linear model so the other two can be compared.</figcaption>
+            <figcaption>Prediction minus measurement for each held-out month. Below zero means the model predicted too low. The first graph shows all three models. The second zooms in without the linear model so the other two can be compared.</figcaption>
             <ul class="err-list" id="err-list"></ul>
           </figure>
         </div>
@@ -751,7 +766,7 @@
       </div>
       <div class="row12">
         <div class="card c12">
-          <h3 class="card-title" style="margin-bottom:12px">Comprehensive statistical performance matrix</h3>
+          <h3 class="card-title" style="margin-bottom:12px">All three models side by side</h3>
           <div class="scroll">
             <table class="tbl matrix">
               <thead><tr>
@@ -771,8 +786,7 @@
   <section class="band alt" id="explorer" aria-labelledby="explorer-h">
     <div class="wrap">
       <div class="sec-head">
-        <span class="eyebrow">Future simulator</span>
-        <h2 class="sec-title" id="explorer-h">Interactive atmospheric forecaster</h2>
+        <h2 class="sec-title" id="explorer-h">Explore the forecast, month by month</h2>
         <p class="sec-lead">Examine expected atmospheric CO₂ concentrations at any date from the start of the record to 2076. Pick a month, switch between the models, and compare what each one predicts.</p>
       </div>
 
@@ -883,6 +897,42 @@
           <p class="note" id="note"></p>
         </div>
       </aside>
+    </div>
+  </section>
+
+  <!-- 6. Limits and conclusion -->
+  <section class="band" id="limits" aria-labelledby="limits-h">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2 class="sec-title" id="limits-h">What the past cannot tell us</h2>
+        <p class="sec-lead">A model that predicts the test years well is not guaranteed to predict the future well. The clearest way to see this is to go back in time: give each model only the data up to <b data-v="f_cutoff"></b>, and ask it about <b data-v="f_target"></b>.</p>
+      </div>
+      <div class="row12">
+        <div class="card c8">
+          <figure class="fig">
+            <div class="card-head">
+              <h3 class="card-title">Models that only saw <span data-v="f_span"></span></h3>
+              <ul class="key" id="fail-key"></ul>
+            </div>
+            <div class="plot" id="p-fail"></div>
+            <figcaption>Each line is a model fitted only on the white part of the graph (<b data-v="f_span"></b>) and then left to run. The shaded part is what it never saw. The dot marks the measured average for <b data-v="f_target"></b>: <b data-v="f_measured"></b> ppm.</figcaption>
+          </figure>
+        </div>
+        <div class="card c4">
+          <h3 class="card-title" style="margin-bottom:12px">The best model can fail worst</h3>
+          <div class="prose">
+            <p>For <b data-v="f_target"></b>, the exponential model trained to <b data-v="f_cutoff"></b> predicts <b data-v="f_exp"></b> ppm, <b data-v="f_exp_err"></b>. The polynomial is <b data-v="f_poly_err"></b> and the straight line <b data-v="f_lin_err"></b>.</p>
+            <p>The reason is the growth rate r. Over a short record the curve is nearly straight, so many values of r fit almost equally well. With data to <span data-v="r_first_year"></span>, the fitted r is <b data-v="r_first"></b> per year. With data to <span data-v="r_last_year"></span>, it is <b data-v="r_last"></b>.</p>
+            <p>A truly non-linear parameter is only as good as the history that pins it down.</p>
+          </div>
+        </div>
+      </div>
+      <div class="row12">
+        <div class="card c12">
+          <h3 class="card-title" style="margin-bottom:12px">What we learned</h3>
+          <ol class="steps" id="learned"></ol>
+        </div>
+      </div>
     </div>
   </section>
 </main>
@@ -1443,7 +1493,7 @@
   function render() { renderPanel(); renderChart(); }
 
   $("subtitle").textContent =
-    `Monthly mean CO₂ at Mauna Loa, ${label(0)} – ${label(lastObs)}.`;
+    `How fast is the CO₂ in our air rising, and how well can simple models predict it? Monthly measurements from Mauna Loa, ${label(0)} – ${label(lastObs)}.`;
   $("note").textContent =
     "Forecasts assume the past pattern simply continues. No model of past CO₂ alone can know future emissions, " +
     "so the further ahead you look, the more the three models disagree. Source: " + D.meta.source + ".";
@@ -1504,7 +1554,6 @@
   const swingE = swingAvg(earlyR[0], earlyR[1]), swingL = swingAvg(lateR[0], lateR[1]);
   const widened = swingL > swingE * 1.03;
   const gEarly = avgRise(...earlyR), gLate = avgRise(...lateR);
-  const g1960 = ymIdx(riseFrom, 1) != null ? best.growth[ymIdx(riseFrom, 1)] : null;
 
   // plain-language values dropped into the prose
   const V = {
@@ -1518,18 +1567,32 @@
     g_early_range: `${earlyR[0]}–${earlyR[1]}`, g_late_range: `${lateR[0]}–${lateR[1]}`,
     g_min: f2(Math.min(...rise.map((r) => r[1]))), g_max: f2(Math.max(...rise.map((r) => r[1]))),
     g_now: f1(best.growth[lastObs]),
-    no_fall: noFall ? "Year after year the average level is higher than the year before; in this record there is no year in which the annual average fell."
+    no_fall: noFall ? "Year after year the average level is higher than the year before. In this record there is no year in which the annual average fell."
                     : "In almost every year the average level is higher than the year before.",
     trend10: f1(best.trend[lastObs] - best.trend[lastObs - 120]),
     seas_min: signed(Math.min(...wave), 1), seas_max: signed(Math.max(...wave), 1),
     harmonics: words(best.params.harmonics),
   };
+  // the failure case for the closing section: models fitted only up to an early cutoff year
+  const F = D.failure;
+  if (F) {
+    const fm = (k) => F.models[k], rr = F.rate_by_cutoff;
+    const miss = (e) => `${f1(Math.abs(e))} ppm too ${e > 0 ? "high" : "low"}`;
+    Object.assign(V, {
+      f_cutoff: String(F.cutoff), f_target: String(F.target_year), f_span: `${label(firstObs)} – Dec ${F.cutoff}`,
+      f_measured: f2(F.measured_mean), f_exp: f2(fm("exponential_seasonal").target_mean),
+      f_exp_err: miss(fm("exponential_seasonal").error), f_poly_err: miss(fm("polynomial_seasonal").error),
+      f_lin_err: miss(fm("linear").error),
+      r_first_year: String(rr[0].until), r_first: fmt(rr[0].rate, 3),
+      r_last_year: String(rr[rr.length - 1].until), r_last: fmt(rr[rr.length - 1].rate, 3),
+    });
+  }
   document.querySelectorAll("[data-v]").forEach((el) => { const v = V[el.dataset.v]; if (v != null) el.textContent = v; });
   $("key-best").style.setProperty("--c", color(bestKey));
   $("hz-train").textContent = `${label(firstObs)} – ${label(heldOut - 1)}`;
   $("hz-held").textContent = `${label(heldOut)} – ${label(lastObs)}`;
   $("foot-src").textContent = `Data: ${D.meta.source}.`;
-  $("foot-split").textContent = `Models fitted on ${label(firstObs)} – ${label(heldOut - 1)}; ${label(heldOut)} onward held out; forecasts to ${label(n - 1)}.`;
+  $("foot-split").textContent = `Models fitted on ${label(firstObs)} – ${label(heldOut - 1)}. ${label(heldOut)} onward held out. Forecasts to ${label(n - 1)}.`;
 
   // ---------- KPI tiles ----------
   const svgi = (d) => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
@@ -1537,23 +1600,24 @@
     up: svgi('<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>'),
     gauge: svgi('<path d="M12 14l4-4"/><path d="M3.3 17a9 9 0 1 1 17.4 0"/>'),
     wave: svgi('<path d="M2 9c2.5-3 5-3 7.5 0s5 3 7.5 0 3-2 5-1"/><path d="M2 16c2.5-3 5-3 7.5 0s5 3 7.5 0 3-2 5-1"/>'),
-    check: svgi('<path d="M20 6L9 17l-5-5"/>'),
+    pin: svgi('<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>'),
   };
   const kpi = (cls, title, icon, val, unit, sub) =>
     `<div class="kpi ${cls}"><div class="kpi-head"><span class="cap">${title}</span>${icon}</div>` +
     `<div class="kpi-val">${val}<small>${unit}</small></div><span class="kpi-sub">${sub}</span></div>`;
   $("kpis").innerHTML =
-    kpi("kpi-trend", "Latest measurement", ICON.up, f2(D.observed[lastObs]), "ppm", `Monthly mean at Mauna Loa · ${label(lastObs)}`) +
-    kpi("kpi-growth", "Yearly rise now", ICON.gauge, `+${f2(best.growth[lastObs])}`, "ppm/yr",
-        g1960 == null ? `${best.label} trend` : `vs +${f2(g1960)} ppm/yr in ${riseFrom} (+${Math.round((best.growth[lastObs] / g1960 - 1) * 100)}% climb)`) +
-    kpi("kpi-seasonal", "Seasonal oscillation", ICON.wave, `~${f1(swing)}`, "ppm", `${fullName(peakM)} peak to ${fullName(troughM)} trough, every year`) +
-    kpi("kpi-error", "Best model held-out RMSE", ICON.check, f2(best.test_rmse), "ppm", `${best.label} · checked on ${heldIdx.length} unseen months`);
+    kpi("kpi-trend", "Latest measurement", ICON.pin,f2(D.observed[lastObs]), "ppm", `Monthly mean at Mauna Loa · ${label(lastObs)}`) +
+    kpi("kpi-rise", "Rise since 1958", ICON.up, `+${f1(obs[lastObs] - obs[firstObs])}`, "ppm",
+        `+${Math.round((obs[lastObs] / obs[firstObs] - 1) * 100)}% since ${label(firstObs)}`) +
+    kpi("kpi-growth", "Yearly rise now", ICON.gauge, `+${f2(gLate)}`, "ppm/yr",
+        `average ${lateR[0]}–${lateR[1]}, against +${f2(gEarly)} in ${earlyR[0]}–${earlyR[1]} (${fmt(gLate / gEarly, 1)}× faster)`) +
+    kpi("kpi-seasonal", "Yearly swing", ICON.wave, `~${f1(swing)}`, "ppm", `highest in ${fullName(peakM)}, lowest in ${fullName(troughM)}`);
 
   // ---------- takeaways ----------
   const CHECK = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>`;
   $("takeaways").innerHTML = [
-    `<b>The late-summer dip is the growing season, not an emissions cut.</b> From spring to early autumn plants absorb CO₂, so the curve falls; it climbs again every winter.`,
-    `<b>A straight line cannot follow this curve.</b> On the held-out months the linear model is off by ${f2(lin.test_rmse)} ppm on average, against ${f2(best.test_rmse)} ppm for the ${best.label} model, because the climb itself keeps getting steeper.`,
+    `<b>The late-summer dip is the growing season, not an emissions cut.</b> From spring to early autumn plants absorb CO₂, so the curve falls. It climbs again every winter.`,
+    `<b>The two parts have different causes.</b> The escalator is mostly fossil fuels and land use. The jump is plants breathing in and out with the seasons.`,
     `<b>The yearly swing is ${widened ? "slowly widening" : "roughly steady"}.</b> Measured minus trend, it was ${f1(swingE)} ppm in ${earlyR[0]}–${earlyR[1]} and ${f1(swingL)} ppm in ${lateR[0]}–${lateR[1]}.` +
       (widened ? " Research on this effect points to more vigorous plant growth in northern ecosystems." : ""),
   ].map((t) => `<li>${CHECK}<span>${t}</span></li>`).join("");
@@ -1562,22 +1626,22 @@
   const rng = (k) => `${signed(errR[k].min, 1)} to ${signed(errR[k].max, 1)}`;
   const INFO = {
     linear: {
-      title: "1. Linear", badge: "Baseline model", formula: "y(t) = a + b·t",
-      about: (m) => `One straight line fitted by least squares: it adds ${f2(m.params.slope_ppm_per_year)} ppm every year, whatever the year. It has no seasonal term, so the yearly wiggle is left as error, and it cannot bend as the climb speeds up.`,
+      title: "1. Linear", badge: "Starting point", formula: "y(t) = a + b·t",
+      about: (m) => `One straight line fitted by least squares: it adds ${f2(m.params.slope_ppm_per_year)} ppm every year, whatever the year. It has no seasonal term, so the yearly swing is left as error, and it cannot bend as the climb speeds up.`,
     },
     polynomial_seasonal: {
       title: "2. Polynomial + seasonal", badge: "Quadratic + harmonics", formula: "y(t) = c₀ + c₁x + c₂x² + S(t)",
-      about: (m) => `A trend that can curve (a quadratic in x = t/10, with t in years since ${label(firstObs)}) plus S(t): ${words(m.params.harmonics)} sine and cosine pairs with 12-, 6-, 4- and 3-month periods. It follows both the wiggle and the speed-up. On the held-out months its error runs from ${rng("polynomial_seasonal")} ppm.`,
+      about: (m) => `A trend that can curve (a quadratic in x = t/10, with t in years since ${label(firstObs)}) plus S(t): ${words(m.params.harmonics)} sine and cosine pairs with 12-, 6-, 4- and 3-month periods. It follows both the yearly swing and the speed-up. On the held-out months its error runs from ${rng("polynomial_seasonal")} ppm.`,
     },
     exponential_seasonal: {
       title: "3. Exponential + seasonal", badge: "Exponential + harmonics", formula: "y(t) = c₀ + a·(e^(r·t) − 1) + S(t)",
-      about: (m) => `The trend is a constant plus an exponential, so the yearly rise itself grows by ${f2(m.params.rate_per_year * 100)}% each year (r = ${fmt(m.params.rate_per_year, 4)}). The same ${words(m.params.harmonics)} harmonics shape the year. Only r is searched non-linearly; the rest is least squares. On the held-out months its error runs from ${rng("exponential_seasonal")} ppm.`,
+      about: (m) => `The trend is a constant plus an exponential, so the yearly rise itself grows by ${f2(m.params.rate_per_year * 100)}% each year (r = ${fmt(m.params.rate_per_year, 4)}). The same ${words(m.params.harmonics)} harmonics shape the year. Only r is searched non-linearly, and the rest is fitted by least squares. On the held-out months its error runs from ${rng("exponential_seasonal")} ppm.`,
     },
   };
   const card = (k) => {
     const m = D.models[k], info = INFO[k] || {}, err = obs[lastObs] == null ? null : m.pred[lastObs] - obs[lastObs];
     return `<article class="card mcard" style="--m:${color(k)}">` +
-      `<div class="mcard-top"><span class="badge">${k === bestKey ? "Best calibration" : info.badge || "Model"}</span>` +
+      `<div class="mcard-top"><span class="badge">${k === bestKey ? "Best on unseen months" : info.badge || "Model"}</span>` +
       `<span class="err">${err == null ? "" : `${signed(err)} ppm err`}</span></div>` +
       `<h3>${info.title || m.label}</h3><div class="formula">${info.formula || ""}</div>` +
       `<p>${info.about ? info.about(m) : ""}</p>` +
@@ -1715,9 +1779,9 @@
     label: `Measured CO2 at Mauna Loa in ppm from ${label(firstObs)} to ${label(lastObs)}, rising from ${f1(obs[firstObs])} to ${f1(obs[lastObs])}`,
     title: "CO₂ (ppm)", height: 300, x: [0, lastObs], y: [300, 440], yStep: 20,
     xTicks: monthTicks(0, lastObs), xLabel: label,
-    bands: [{ a: heldOut, b: lastObs, fill: "var(--band-heldout)", text: "Held out" }],
+    bands: [{ a: heldOut, b: lastObs, fill: "var(--band-heldout)", text: "Test years" }],
     series: [
-      { name: "Trend", color: "var(--accent)", width: 2, dash: "6 4", pts: pts(best.trend, 0, lastObs) },
+      { name: "Fitted trend", color: "var(--accent)", width: 2, dash: "6 4", pts: pts(best.trend, 0, lastObs) },
       { name: "Measured", color: "var(--observed)", width: 1.5, pts: pts(obs, 0, lastObs) },
     ],
     notes: [
@@ -1733,8 +1797,8 @@
     xTicks: yearTicks(riseFrom, riseTo), xLabel: String, vFmt: (v) => `${f2(v)} ppm/yr`,
     series: [
       { name: "Measured", kind: "bars", color: "var(--accent)", opacity: 0.55, pts: rise },
-      { name: lin.label, color: color("linear"), width: 2.4, dash: "7 5", pts: rise.map(([y]) => [y, lin.growth[ymIdx(y, 7)]]) },
-      { name: best.label, color: color(bestKey), width: 2.8, pts: rise.map(([y]) => [y, best.growth[ymIdx(y, 7)]]) },
+      { name: "Straight line", color: color("linear"), width: 2.4, dash: "7 5", pts: rise.map(([y]) => [y, lin.growth[ymIdx(y, 7)]]) },
+      { name: "Fitted trend", color: color(bestKey), width: 2.8, pts: rise.map(([y]) => [y, best.growth[ymIdx(y, 7)]]) },
     ],
   });
 
@@ -1744,8 +1808,8 @@
   const [dLo, dHi] = niceRange(Math.min(...range(iA, iB).map((i) => Math.min(obs[i] ?? Infinity, best.trend[i]))), Math.max(...range(iA, iB).map((i) => Math.max(obs[i] ?? -Infinity, best.trend[i]))), 10);
   const dec = { x: [iA, iB], xLabel: label, yStep: 10, padL: 44 };
   plot($("p-dec-obs"), { ...dec, y: [dLo, dHi], height: 170, title: "Measured (ppm)",
-    label: "Measured CO2 over the last ten years, rising with a yearly zig-zag",
-    series: [{ name: "Trend", color: "var(--accent)", width: 2, dash: "6 4", pts: pts(best.trend, iA, iB) }, { name: "Measured", color: "var(--observed)", width: 1.6, pts: pts(obs, iA, iB) }] });
+    label: "Measured CO2 over the last ten years, rising with a yearly swing",
+    series: [{ name: "Fitted trend", color:"var(--accent)", width: 2, dash: "6 4", pts: pts(best.trend, iA, iB) }, { name: "Measured", color: "var(--observed)", width: 1.6, pts: pts(obs, iA, iB) }] });
   plot($("p-dec-trend"), { ...dec, y: [dLo, dHi], height: 150, title: "Trend: the escalator (ppm)",
     label: `The trend alone over the last ten years, climbing ${f1(best.trend[iB] - best.trend[iA])} ppm`,
     series: [{ name: "Trend", color: "var(--accent)", width: 3, pts: pts(best.trend, iA, iB) }],
@@ -1765,7 +1829,7 @@
     xLabel: fullName, vFmt: sppm,
     series: [
       { name: "Measured average", kind: "bars", color: "var(--c-seasonal)", opacity: 0.55, pts: measWave.map((v, k) => [k + 1, v]) },
-      { name: "Fitted wave", color: color(bestKey), width: 2.8, pts: wave.map((v, k) => [k + 1, v]) },
+      { name: "Fitted seasonal part", color: color(bestKey), width: 2.8, pts: wave.map((v, k) => [k + 1, v]) },
     ],
     notes: [{ x: peakM, y: wave[peakM - 1], text: signed(wave[peakM - 1], 1), anchor: "middle", dx: 0, dy: -10, color: color(bestKey) },
             { x: troughM, y: wave[troughM - 1], text: signed(wave[troughM - 1], 1), anchor: "middle", dx: 0, dy: 18, color: color(bestKey) }],
@@ -1781,6 +1845,36 @@
   const [zLo, zHi] = niceRange(Math.min(...zoomKeys.map((k) => errR[k].min)), Math.max(0.1, ...zoomKeys.map((k) => errR[k].max)), 1);
   plot($("p-err-zoom"), { ...errBase, y: [zLo, zHi], yStep: 1, height: 200, title: "Zoom: linear removed (ppm)",
     label: "The same errors without the linear model, so the polynomial and exponential models can be compared", xTicks: monthTicks(heldOut, lastObs), series: errSeries(zoomKeys) });
+
+  // 6. the failure case: every model fitted only up to F.cutoff, then left to run
+  if (F) {
+    const cut = ymIdx(F.cutoff, 12), tgt = ymIdx(F.target_year, 7);
+    const failSeries = modelKeys.filter((k) => F.models[k]).map((k) =>
+      ({ name: `${F.models[k].label} (to ${F.cutoff})`, color: color(k), width: 2.4, pts: F.models[k].pred.map((v, i) => [i, v]) }));
+    const allV = [...obs.slice(0, lastObs + 1).filter((v) => v != null), ...failSeries.flatMap((s) => s.pts.map((p) => p[1]))];
+    const [fLo, fHi] = niceRange(Math.min(...allV), Math.max(...allV), 20);
+    $("fail-key").innerHTML = `<li><span class="sw" style="--c:var(--observed)"></span>Measured</li>` +
+      modelKeys.filter((k) => F.models[k]).map((k) => `<li><span class="sw" style="--c:${color(k)}"></span>${F.models[k].label}</li>`).join("");
+    plot($("p-fail"), {
+      label: `Models fitted only on data to ${F.cutoff}, run forward and compared with the measurements. For ${F.target_year} the exponential predicts ${f1(F.models.exponential_seasonal.target_mean)} ppm against ${f1(F.measured_mean)} ppm measured`,
+      title: "CO₂ (ppm)", height: 300, x: [0, lastObs], y: [fLo, fHi], yStep: 20,
+      xTicks: monthTicks(0, lastObs), xLabel: label,
+      bands: [{ a: cut + 1, b: lastObs, fill: "var(--band-heldout)", text: `Never seen by these models` }],
+      series: [{ name: "Measured", color: "var(--observed)", width: 1.3, pts: pts(obs, 0, lastObs) }, ...failSeries],
+      notes: [{ x: tgt, y: F.measured_mean, text: `${F.target_year} measured: ${f1(F.measured_mean)}`, dx: 8, dy: 18 }],
+    });
+  }
+
+  // ---------- what we learned ----------
+  const f35 = modelKeys.map((k) => D.models[k].forecast_2035?.mean).filter((v) => v != null);
+  const bestFit = modelKeys.slice().sort((a, b) => D.models[a].train_rmse - D.models[b].train_rmse)[0];
+  $("learned").innerHTML = [
+    `<b>CO₂ rises every year, and the rise is speeding up.</b> The yearly rise grew from ${f2(gEarly)} ppm in ${earlyR[0]}–${earlyR[1]} to ${f2(gLate)} ppm in ${lateR[0]}–${lateR[1]}.`,
+    `<b>The curve is a trend plus a yearly swing.</b> Separating the escalator from the jump is what makes it possible to model.`,
+    `<b>A model can bend and still be linear in its parameters.</b> That keeps it easy to fit. The ${D.models[bestFit].label} model fits the learning years best (${f2(D.models[bestFit].train_rmse)} ppm).`,
+    `<b>Judge a model on years it never saw.</b> On the test years the ${best.label} model was best: ${modelKeys.map((k) => `${f2(D.models[k].test_rmse)} ppm (${D.models[k].label})`).join(", ")}.`,
+    `<b>No model of the past knows the future.</b> For 2035 the three models give ${f1(Math.min(...f35))} to ${f1(Math.max(...f35))} ppm. None of them can know future emissions, policy, or how much CO₂ oceans and forests will keep absorbing.`,
+  ].map((t) => `<li>${t}</li>`).join("");
 
   // ---------- page navigation: mark the section being read ----------
   const navLinks = [...document.querySelectorAll(".nav a")];
