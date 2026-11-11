@@ -6,8 +6,8 @@
   "horizon_months": 240,
   "forecast": "2016-01 to 2035-12",
   "fitted_on_the_data": false,
-  "seconds_to_load": 109.8,
-  "seconds_to_forecast": 0.7,
+  "seconds_to_load": 40.5,
+  "seconds_to_forecast": 0.8,
   "versions": {
     "timesfm": "3.0.2",
     "torch": "2.15.0",

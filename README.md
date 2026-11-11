@@ -56,6 +56,10 @@ All commands run from the repo root. Figures go to `results/figures/`, tables to
 | Numbers for the presentation page: polynomial fits of degree 1-4, quadratic trend + 1-4 harmonics, the validation grid, training RMSE against r, the train/test metrics table; writes `frontend/presentation-data.js` | `python scripts/export_presentation.py` |
 | Presentation page: the 17 sections of the talk with interactive graphs, linked to and from the explorer | same server, then open http://localhost:8000/presentation.html |
 
+### Double-click launchers (Windows)
+
+`run_commands/` has one `.cmd` file per command above, numbered in the order you would run them: `01_all_results.cmd` … `12_run_tests.cmd`, `13_start_localhost.cmd` (starts the server and opens the explorer and the presentation in the browser), and `14_timesfm_forecast.cmd` / `15_timesfm_compare.cmd` (use the venv in `timesfm_forecast/`). Each one runs from the repo root and keeps its window open until you press a key.
+
 `frontend/index.html` and `frontend/presentation.html` also open directly from disk (double-click), because the data is loaded as a script rather than fetched.
 
 On the presentation page: the left menu jumps to a section, the left/right arrow keys (or Page Up/Down) move between sections, `N` shows the speaker notes, `M` hides the menu. Graphs show values on hover; on the time-series graphs, drag to zoom and double-click to reset.
